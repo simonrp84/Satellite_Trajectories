@@ -213,6 +213,7 @@ def get_startend(ac_traj, sensor, mode):
     '''
 
     timestep = sat_timesteps(sensor, mode)
+    print(sensor,mode,timestep)
     start_time = get_sat_time(ac_traj.index[0], timestep)
     end_time = get_sat_time(ac_traj.index[len(ac_traj) - 1], timestep)
 
@@ -304,7 +305,15 @@ def sat_timesteps(sensor, mode):
         A list of scan start times in the hour (given in minutes)
     '''
 
-    if (sensor == 'AHI' and mode == 'FD'):
-        return [0, 10, 20, 30, 40, 50]
+    if (sensor == 'AHI'):
+        if (mode == 'FD'):
+            return np.linspace(0, 50, 6, dtype=np.int)
+        else:
+            return -1
+    elif (sensor == 'ABI'):
+        if (mode == 'CONUS' or mode == 'PACUS'):
+            return np.linspace(0, 55, 12, dtype=np.int)
+        if (mode == 'M1' or mode == 'M2'):
+            return np.linspace(0, 59, 60, dtype=np.int)
     else:
         return -1
