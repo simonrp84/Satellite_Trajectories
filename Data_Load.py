@@ -29,13 +29,11 @@ import warnings
 try:
     import eurocontrol_reader as eurordr
 except ImportError:
-    warnings.warn("EUROCONTROL SO6 reader is not available.",
-                  warnings.ImportWarning)
+    None
 try:
     import fdm_data_reader as fdmr
 except ImportError:
-    warnings.warn("Flight Data Management reader is not available.",
-                  warnings.ImportWarning)
+    None
 
 
 def dateparse(x):
