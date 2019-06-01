@@ -3,10 +3,11 @@ This library overlays aircraft trajectories onto satellite images.
 Useful for examining incidents such as weather encounters.
 
 Currently supported aircraft data:
-    -   Time/Lat/Lon CSV
+    -   Time/Lat/Lon/Alt CSV
 
 Currently supported satellite data:
     -   Himawari
+    -   GOES-R/S
 
 Call with:
 python Main.py /path/to/sat/data/ /path/to/trajectory/file sat_type
@@ -73,10 +74,6 @@ def main_aircraft_processing(opts):
     prev_time = datetime(1850,1,1,0,0,0)
     old_scn = None
     sat_img = None
-
-    #fig = acplot.setup_plot(plot_bounds, bg_col)
-    #fig = acplot.overlay_ac(fig, ac_traj2, n_traj_pts2, 'green')
-    #acplot.save_output_plot('/home/proud/Desktop/test.png', fig, 600)
 
     for i in range(2,n_traj_pts2):
         cur_time = ac_traj2.index[i]
