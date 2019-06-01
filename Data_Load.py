@@ -84,7 +84,6 @@ def read_aircraft_fdm(infile, start_t, end_t):
     try:
         ac_traj = fdmr.read_ekr(infile, start_t, end_t)
     except ImportError:
-        print("ERROR: FDM Reader is unavailable.")
         raise ImportError("FDM reader not found")
 
     return ac_traj
@@ -106,7 +105,6 @@ def read_aircraft_euro(infile, start_t, end_t):
     try:
         ac_traj = eurordr.read_so6(infile, start_t, end_t)
     except ImportError:
-        print("ERROR: SO6 Reader is unavailable.")
         raise ImportError("SO6 reader not found")
 
     return ac_traj
@@ -142,7 +140,7 @@ def load_sat(indir, in_time, comp_type, sensor, area_def, cache_dir, mode):
             print("ERROR: No satellite data available for", in_time)
             return None
     else:
-        print("Currently only Himawari is supported.")
+        print("Currently only Himawari-8/9 and GOES-R/S are supported.")
         quit()
 
     scn = tmp_scn.resample(area_def, cache_dir=cache_dir)
