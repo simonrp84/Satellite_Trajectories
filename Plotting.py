@@ -29,7 +29,7 @@ def setup_plot(extent, bg_col):
     ax.set_extent(extent, ccrs.Geodetic())
     ax.coastlines(resolution='50m', color=bg_col, linewidth=0.5)
     
-    return ax
+    return plt
 
 def overlay_startend(plt_ax, ac_df, ac_color):
     '''
@@ -83,12 +83,10 @@ def overlay_ac(plt_ax, ac_df, traj_lim, ac_cmap, minalt, maxalt):
             
         alt = alt / (maxalt - minalt)
             
-        p0 = [lons[i-1], lats[i-1]]
-        p1 = [lons[i], lats[i]]
+        lonp = [lons[i-1], lons[i]]
+        latp = [lats[i-1], lats[i]]
         color = cmap(alt)
-#        plt_ax.add_geometries([line], ccrs.PlateCarree(), linewidth=0.5,
-#                              edgecolor=color, facecolor='none')
-        plt_ax.plot(p0, p1, color=color, linewidth=0.5, transform=ccrs.PlateCarree())
+        plt_ax.plot(lonp, latp, color=color, linewidth=0.5)
 
     return plt_ax
 
@@ -102,7 +100,7 @@ def add_acpos(plt_ax, ac_df, curpt, ac_color):
         curpt - the current position of the aircraft in the dataframe
         ac_color - colour to plot the trajectory, useful for multiple aircraft
     Returns:
-        plt - the matplotlib plot
+        plt_ax - the matplotlib plot
     '''
 
     lon = ac_df.Longitude[curpt]
