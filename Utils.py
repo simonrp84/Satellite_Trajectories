@@ -213,7 +213,6 @@ def get_startend(ac_traj, sensor, mode):
     '''
 
     timestep = sat_timesteps(sensor, mode)
-    print(sensor,mode,timestep)
     start_time = get_sat_time(ac_traj.index[0], timestep)
     end_time = get_sat_time(ac_traj.index[len(ac_traj) - 1], timestep)
 
