@@ -1,3 +1,16 @@
+'''
+Contains functions related to reading aircraft and satellite data formats
+Currently supported aircraft data:
+    -   EUROCONTROL SO6
+    -   Flight data management / QAR output
+    -   Generic CSV files
+Currently supported satellite data:
+    -   Himawari / AHI in Full disk mode
+    -   GOES R/S in all modes
+    
+Satellite data requires the Satpy library.
+'''
+
 from pandas import datetime
 from datetime import timedelta
 from pandas import read_csv, to_datetime

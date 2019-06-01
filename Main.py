@@ -9,13 +9,13 @@ Currently supported satellite data:
     -   Himawari
     -   GOES-R/S
 
-Call with:
-python Main.py /path/to/sat/data/ /path/to/trajectory/file sat_type
-Where sat_type is one of:
-    'AHI' for Himawari
-    'ABI' for GOES-R/S
-    'SEV' for Meteosat Second Generation
-    'AGR' for Fengyun-4A
+See the show_usage() function in Utils.py for call information.
+
+
+This file contains the main routine for running the library, 
+main_aircraft_processing(), and an example of how to call it.
+Currently an 'opts' list must be passed. In this future this will
+become a class, which would be easier to use.
 
 '''
 

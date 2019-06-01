@@ -1,3 +1,10 @@
+'''
+These functions are useful for plotting the resulting aircraft and satellite
+data. Currently, many assumptions are made (such as the wish to colour-code
+the aircraft track by altitude. In the future these will be made more generic/
+customisable.
+'''
+
 import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
 import shapely.geometry as sgeom
@@ -23,7 +30,7 @@ def setup_plot(extent, bg_col):
         extent - desired image extent as lon_min, lon_max, lat_min, lat_max
         bg_col - colour to plot the coastlines
     Returns:
-        ax - the matplotlib axes object for using in plot creation
+        plt - the matplotlib axes object for using in plot creation
     '''
     ax = plt.axes([0, 0, 1, 1], projection=ccrs.PlateCarree())
     ax.set_extent(extent, ccrs.Geodetic())

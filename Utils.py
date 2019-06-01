@@ -1,3 +1,10 @@
+'''
+A selection of utility functions for parsing input options,
+setting up the area of interest, pre-processing aircraft data
+and returning useful satellite parameters.
+'''
+
+
 import os
 import numpy as np
 from pandas import datetime
