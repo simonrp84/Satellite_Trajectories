@@ -8,9 +8,7 @@ and returning useful satellite parameters.
 import os
 import numpy as np
 from pandas import datetime
-from datetime import timedelta
 import pandas as pd
-from shapely.geometry import Point, LineString
 import scipy.interpolate as interpolate
 from pyresample import create_area_def as create_area_def_pyr
 
@@ -47,11 +45,8 @@ def create_area_def(extent, res):
     Returns:
         area_def - the corresponding area definition
     '''
-    
-    mid_lon = (extent[1] - extent[0])/2.0
-    mid_lat = (extent[3] - extent[2])/2.0
 
-    new_extent = [ extent[0], extent[2], extent[1], extent[3]]
+    new_extent = [extent[0], extent[2], extent[1], extent[3]]
     area_id = 'temporary_area'
     proj_dict = {'proj': 'eqc'}
     area_def = create_area_def_pyr(area_id, proj_dict,
@@ -75,26 +70,26 @@ def calc_bounds(ac_traj, lat_bnd, lon_bnd):
     Returns:
         extent - a list of bounds in format min_lon, max_lon, min_lat, max_lat
     '''
-    
+
     lat_min = ac_traj['Latitude'].min()
     lat_max = ac_traj['Latitude'].max()
     lat_diff = lat_max - lat_min
-    
+
     lat0 = lat_min - (lat_diff * lat_bnd)
     lat1 = lat_max + (lat_diff * lat_bnd)
-    
+
     lon_min = ac_traj['Longitude'].min()
     lon_max = ac_traj['Longitude'].max()
     lon_diff = lon_max - lon_min
-    
+
     lon0 = lon_min - (lon_diff * lon_bnd)
     lon1 = lon_max + (lon_diff * lon_bnd)
-    
+
     extent = [lon0, lon1, lat0, lat1]
-    
+
     return extent
-    
-    
+
+
 def interp_ac(ac_traj, freq):
     '''
     Interpolates the aircraft trajectory onto a fixed time interval
@@ -111,19 +106,19 @@ def interp_ac(ac_traj, freq):
 
     # We need times in unix format
     in_times = ac_traj.index.astype(np.int64) // 10**9
-    
+
     st_time = ac_traj.index[0]
     # Set start time to 0 seconds, makes it more 'pretty'
     st_time = st_time.replace(second=0)
-    
-    out_times = pd.date_range(start=st_time,end=ac_traj.index[-1],freq=freq)
+
+    out_times = pd.date_range(start=st_time, end=ac_traj.index[-1], freq=freq)
     interp_times = out_times.astype(np.int64) // 10**9
-    
+
     lats = ac_traj.Latitude.values
     lons = ac_traj.Longitude.values
     alts = ac_traj.Altitude.values
-    
-    # Do the interpolation, linear fit is better as cubic can result in 
+
+    # Do the interpolation, linear fit is better as cubic can result in
     # divergences near sudden heading changes
     f_lat = interpolate.interp1d(in_times, lats, kind='linear',
                                  fill_value="extrapolate")
@@ -134,7 +129,7 @@ def interp_ac(ac_traj, freq):
     new_lat = f_lat(interp_times)
     new_lon = f_lon(interp_times)
     new_alt = f_alt(interp_times)
-    
+
     # Put the results into a new Pandas dataframe
     ot = pd.DataFrame()
     ot['Datetime'] = out_times
@@ -142,9 +137,9 @@ def interp_ac(ac_traj, freq):
     ot['Longitude'] = new_lon
     ot['Altitude'] = new_alt
     ot = ot.set_index('Datetime')
-    
+
     return ot
-    
+
 
 def sort_args(inargs):
     '''
@@ -164,12 +159,12 @@ def sort_args(inargs):
                  if no command line arg for init_t is given then init_t = None
         end_t - end time to process (for skipping end of timeseries)
                  if no command line arg for end_t is given then end_t = None
-             
+
     !!!   NOTE: Mode/Sensor combinations are not checked here   !!!
     '''
 
     senlist = ['AHI', 'ABI', 'SEV', 'AGR']
-    
+
     init_t = None
     end_t = None
 
@@ -193,11 +188,11 @@ def sort_args(inargs):
         show_usage()
     if (len(inargs) >= 7):
         dtstr = inargs[6]
-        init_t = datetime.strptime(dtstr,"%Y%m%d%H%M%S")
+        init_t = datetime.strptime(dtstr, "%Y%m%d%H%M%S")
     if (len(inargs) >= 8):
         dtstr = inargs[7]
-        end_t = datetime.strptime(dtstr,"%Y%m%d%H%M%S")
-        
+        end_t = datetime.strptime(dtstr, "%Y%m%d%H%M%S")
+
     if flt_fil.find(".csv"):
         flt_type = 'CSV'
 
@@ -220,13 +215,13 @@ def get_startend(ac_traj, sensor, mode):
     timestep = sat_timesteps(sensor, mode)
     start_time = get_sat_time(ac_traj.index[0], timestep)
     end_time = get_sat_time(ac_traj.index[len(ac_traj) - 1], timestep)
-    
+
     tot_ac_time = end_time - start_time
     print("\t-\tAircraft trajectory runs from", start_time, "until", end_time,
           ", which is ", np.round(tot_ac_time.total_seconds()/60), "minutes.")
 
     return start_time, end_time, tot_ac_time
-    
+
 
 def get_cur_sat_time(cur_t, sensor, mode):
     '''
@@ -239,11 +234,11 @@ def get_cur_sat_time(cur_t, sensor, mode):
     Returns:
         sat_time - the satellite scan start time
     '''
+
     timestep = sat_timesteps(sensor, mode)
     sat_time = get_sat_time(cur_t, timestep)
-    
+
     return sat_time
-    
 
 
 def get_sat_time(inti, timestep):
@@ -255,17 +250,17 @@ def get_sat_time(inti, timestep):
     Returns:
         outti - the satellite scan start time
     '''
-    
+
     outti = inti
     for i in range(0, len(timestep)):
         if (inti.minute >= timestep[i]):
             outti = datetime(inti.year, inti.month, inti.day,
                              inti.hour, timestep[i])
-                             
+
     outti = outti.replace(second=0, microsecond=0)
-    
+
     return outti
-            
+
 
 def sat_timestep_time(sensor, mode):
     '''
@@ -277,6 +272,7 @@ def sat_timestep_time(sensor, mode):
         A time value in minutes for each scan.
         If unknown sensor/mode combination then returns -1
     '''
+
     if (sensor == 'AHI'):
         if (mode == 'FD'):
             return 10
@@ -307,6 +303,7 @@ def sat_timesteps(sensor, mode):
     Returns:
         A list of scan start times in the hour (given in minutes)
     '''
+
     if (sensor == 'AHI' and mode == 'FD'):
         return [0, 10, 20, 30, 40, 50]
     else:

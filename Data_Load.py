@@ -7,7 +7,7 @@ Currently supported aircraft data:
 Currently supported satellite data:
     -   Himawari / AHI in Full disk mode
     -   GOES R/S in all modes
-    
+
 Satellite data requires the Satpy library.
 '''
 
@@ -16,22 +16,27 @@ from datetime import timedelta
 from pandas import read_csv, to_datetime
 from satpy import Scene
 from satpy import find_files_and_readers as ffar
-from satpy.utils import debug_on
 import Utils as utils
-#debug_on()
+
+
+# Use these lines to enable debug mode, useful if satellite data
+# isn't loading correctly.
+# from satpy.utils import debug_on
+# debug_on()
 
 import warnings
 
 try:
     import eurocontrol_reader as eurordr
-except:
+except ImportError:
     warnings.warn("EUROCONTROL SO6 reader is not available.",
                   warnings.ImportWarning)
 try:
     import fdm_data_reader as fdmr
-except:
+except ImportError:
     warnings.warn("Flight Data Management reader is not available.",
                   warnings.ImportWarning)
+
 
 def dateparse(x):
     return datetime.strptime(x, '%d/%m/%y %H:%M:%S')
@@ -51,17 +56,18 @@ def read_aircraft_csv(infile, start_t, end_t):
     Returns:
         ac_traj - a pandas dataframe holding the aircraft trajectory
     '''
+
     ac_traj = read_csv(infile,
                        parse_dates=['Datetime'],
                        date_parser=dateparse)
-    
-    if (start_t != None):
+
+    if (start_t is not None):
         ac_traj = ac_traj[ac_traj['Datetime'] >= start_t]
-    if (end_t != None):
+    if (end_t is not None):
         ac_traj = ac_traj[ac_traj['Datetime'] <= end_t]
     ac_traj = ac_traj.set_index('Datetime')
     ac_traj.index = to_datetime(ac_traj.index)
-    
+
     return ac_traj
 
 
@@ -76,12 +82,13 @@ def read_aircraft_fdm(infile, start_t, end_t):
     Returns:
         ac_traj - a pandas dataframe holding the aircraft trajectory
     '''
+
     try:
         ac_traj = fdmr.read_ekr(infile, start_t, end_t)
-    except:
+    except ImportError:
         print("ERROR: FDM Reader is unavailable.")
         raise ImportError("FDM reader not found")
-    
+
     return ac_traj
 
 
@@ -97,12 +104,13 @@ def read_aircraft_euro(infile, start_t, end_t):
     Returns:
         ac_traj - a pandas dataframe holding the aircraft trajectory
     '''
+
     try:
         ac_traj = eurordr.read_so6(infile, start_t, end_t)
-    except:
+    except ImportError:
         print("ERROR: SO6 Reader is unavailable.")
         raise ImportError("SO6 reader not found")
-    
+
     return ac_traj
 
 
@@ -114,25 +122,26 @@ def load_sat(indir, in_time, comp_type, sensor, area_def, cache_dir, mode):
         indir - directory holding the satellite data
         in_time - a datetime indicating the scene start time in UTC
         comp_type - the Satpy composite to create (true_color, B03, etc)
-        sensor - The sensor name, such as "AHI"
-        area_def - the region to resample the data to (covering, f.ex trajectory)
+        sensor - sensor name, such as "AHI"
+        area_def - region to resample the data to (covering, f.ex trajectory)
         cache_dir - directory used by SatPy for cache, speeds up GEO resampling
         mode - the scanning mode, 'FD' for full disk, 'CONUS', 'RSS', etc
     Returns:
         sat_data - a remapped satellite data field / composite
     '''
+
     timedelt = utils.sat_timestep_time(sensor, mode)
     if (sensor == "AHI"):
         try:
             tmp_scn = load_himawari(indir, in_time, comp_type, timedelt)
         except ValueError:
-            print("ERROR: No satellite data available for",in_time)
+            print("ERROR: No satellite data available for", in_time)
             return None
     elif (sensor == "ABI"):
         try:
             tmp_scn = load_goes(indir, in_time, comp_type, timedelt)
         except ValueError:
-            print("ERROR: No satellite data available for",in_time)
+            print("ERROR: No satellite data available for", in_time)
             return None
     else:
         print("Currently only Himawari is supported.")
@@ -141,6 +150,7 @@ def load_sat(indir, in_time, comp_type, sensor, area_def, cache_dir, mode):
     scn = tmp_scn.resample(area_def, cache_dir=cache_dir)
     return scn
 
+
 def load_himawari(indir, in_time, comp_type, timedelt):
     '''
     This function will load a Himawari/AHI scene as given by img_time
@@ -148,7 +158,7 @@ def load_himawari(indir, in_time, comp_type, timedelt):
     will be automatically defined from this using timedelt
 
     The image will be loaded with Satpy, return value is a cartopy object
-    
+
     Arguments:
         indir - directory holding the Himawari data in HSD (unzipped) format
         img_time - a datetime indicating the scene start time in UTC
@@ -157,6 +167,7 @@ def load_himawari(indir, in_time, comp_type, timedelt):
     Returns:
         sat_data - the satellite data object, unresampled
     '''
+
     files = ffar(start_time=in_time,
                  end_time=in_time + timedelta(minutes=timedelt-1),
                  base_dir=indir,
@@ -166,7 +177,7 @@ def load_himawari(indir, in_time, comp_type, timedelt):
     scn.load([comp_type])
 
     return scn
-    
+
 
 def load_goes(indir, in_time, comp_type, timedelt):
     '''
@@ -184,6 +195,7 @@ def load_goes(indir, in_time, comp_type, timedelt):
     Returns:
         sat_data - the satellite data object, unresampled
     '''
+
     files = ffar(start_time=in_time,
                  end_time=in_time + timedelta(minutes=timedelt-1),
                  base_dir=indir,
