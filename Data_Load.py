@@ -7,6 +7,19 @@ from satpy.utils import debug_on
 import Utils as utils
 #debug_on()
 
+import warnings
+
+try:
+    import eurocontrol_reader as eurordr
+except:
+    warnings.warn("EUROCONTROL SO6 reader is not available.",
+                  warnings.ImportWarning)
+try:
+    import fdm_data_reader as fdmr
+except:
+    warnings.warn("Flight Data Management reader is not available.",
+                  warnings.ImportWarning)
+
 def dateparse(x):
     return datetime.strptime(x, '%d/%m/%y %H:%M:%S')
 
@@ -35,6 +48,47 @@ def read_aircraft_csv(infile, start_t, end_t):
         ac_traj = ac_traj[ac_traj['Datetime'] <= end_t]
     ac_traj = ac_traj.set_index('Datetime')
     ac_traj.index = to_datetime(ac_traj.index)
+    
+    return ac_traj
+
+
+def read_aircraft_fdm(infile, start_t, end_t):
+    '''
+    This function will convert a FDM file (EK format) into a pandas dataframe
+    Currently only the date/time, position and altitude are imported.
+    Arguments:
+        infile - the file containing aircraft trajectory information
+        start_t - the desired start time, earlier data is removed
+        end_t - the desired ending time, later data is removed
+    Returns:
+        ac_traj - a pandas dataframe holding the aircraft trajectory
+    '''
+    try:
+        ac_traj = fdmr.read_ekr(infile, start_t, end_t)
+    except:
+        print("ERROR: FDM Reader is unavailable.")
+        raise ImportError("FDM reader not found")
+    
+    return ac_traj
+
+
+def read_aircraft_euro(infile, start_t, end_t):
+    '''
+    This function will convert a EUROCONTROL SO6 file into a pandas dataframe
+    Currently only the date/time, position and altitude are imported.
+    Eventually this will be replaced with Xavier Olive's 'traffic' library.
+    Arguments:
+        infile - the file containing aircraft trajectory information
+        start_t - the desired start time, earlier data is removed
+        end_t - the desired ending time, later data is removed
+    Returns:
+        ac_traj - a pandas dataframe holding the aircraft trajectory
+    '''
+    try:
+        ac_traj = eurordr.read_so6(infile, start_t, end_t)
+    except:
+        print("ERROR: SO6 Reader is unavailable.")
+        raise ImportError("SO6 reader not found")
     
     return ac_traj
 
