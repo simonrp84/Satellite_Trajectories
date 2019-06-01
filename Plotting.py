@@ -7,6 +7,7 @@ customisable.
 
 import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
+import cartopy.feature as cfeature
 
 
 def save_output_plot(outname, plot, out_dpi):
@@ -36,7 +37,14 @@ def setup_plot(extent, bg_col):
 
     ax = plt.axes([0, 0, 1, 1], projection=ccrs.PlateCarree())
     ax.set_extent(extent, ccrs.Geodetic())
-    ax.coastlines(resolution='50m', color=bg_col, linewidth=0.5)
+    ax.coastlines(resolution='10m', color=bg_col, linewidth=0.5)
+    states_provinces = cfeature.NaturalEarthFeature(
+        category='cultural',
+        name='admin_1_states_provinces_lines',
+        scale='10m',
+        facecolor='none')
+    ax.add_feature(states_provinces, edgecolor='gray', linewidth=0.5)
+    ax.add_feature(cfeature.BORDERS, edgecolor='gray', linewidth=0.5)
 
     return plt
 
