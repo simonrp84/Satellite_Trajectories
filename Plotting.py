@@ -26,13 +26,14 @@ def save_output_plot(outname, plot, out_dpi):
     plt.savefig(outname, bbox_inches='tight', pad_inches=0, dpi=out_dpi)
 
 
-def setup_plot(extent, bg_col):
+def setup_plot(extent, bg_col, linewid):
     '''
     Setup the matplotlib output figure
     This will add a coastline overlay to your image
     Argument:
         extent - desired image extent as lon_min, lon_max, lat_min, lat_max
         bg_col - colour to plot the coastlines
+        linewid - the width of the lines to plot coastlines
     Returns:
         plt - the matplotlib axes object for using in plot creation
     '''
@@ -48,12 +49,12 @@ def setup_plot(extent, bg_col):
         facecolor='none',
         edgecolor=bg_col,
         linewidth=0.3)
-    ax.add_feature(states_provinces, edgecolor=bg_col, linewidth=0.2)
-    ax.add_feature(cfeature.BORDERS, edgecolor=bg_col, linewidth=0.2)
+    ax.add_feature(states_provinces, edgecolor=bg_col, linewidth=0.5*linewid)
+    ax.add_feature(cfeature.BORDERS, edgecolor=bg_col, linewidth=0.5*linewid)
     return plt
 
 
-def overlay_startend(plt_ax, ac_df, ac_color):
+def overlay_startend(plt_ax, ac_df, ac_color, dotsize):
     '''
     Adds a start and end marker to a plot, showing aircraft
     origin and destination as stars
@@ -61,6 +62,7 @@ def overlay_startend(plt_ax, ac_df, ac_color):
         plt_ax - the matplotlib axes object to use for plotting
         ac_df - the aircraft trajectory as a pandas dataframe
         ac_color - colour to plot the markers
+        dotsize - the size of the matplotlib marker to display
     Returns:
         plt - the matplotlib plot
     '''
@@ -70,12 +72,12 @@ def overlay_startend(plt_ax, ac_df, ac_color):
     lon1 = ac_df.Longitude[len(ac_df)-1]
     lat1 = ac_df.Latitude[len(ac_df)-1]
 
-    plt_ax.plot(lon0, lat0, marker='*', color=ac_color, markersize=1)
-    plt_ax.plot(lon1, lat1, marker='*', color=ac_color, markersize=1)
+    plt_ax.plot(lon0, lat0, marker='*', color=ac_color, markersize=dotsize)
+    plt_ax.plot(lon1, lat1, marker='*', color=ac_color, markersize=dotsize)
     return plt
 
 
-def overlay_ac(plt_ax, ac_df, traj_lim, ac_cmap, minalt, maxalt):
+def overlay_ac(plt_ax, ac_df, traj_lim, ac_cmap, minalt, maxalt, linesize):
     '''
     Adds an aircraft trajectory segment to a map plot
     Arguments:
@@ -85,6 +87,7 @@ def overlay_ac(plt_ax, ac_df, traj_lim, ac_cmap, minalt, maxalt):
         ac_cmap - colourmap to plot the trajectory, chosen by altitude
         minalt - minimum altitude in the colourmap
         maxalt - maximum altitude in the colourmap
+        linesize - the width of the line used to draw the trajectory
     Returns:
         plt - the matplotlib plot
     '''
@@ -108,12 +111,12 @@ def overlay_ac(plt_ax, ac_df, traj_lim, ac_cmap, minalt, maxalt):
         lonp = [lons[i-1], lons[i]]
         latp = [lats[i-1], lats[i]]
         color = cmap(alt)
-        plt_ax.plot(lonp, latp, color=color, linewidth=0.5)
+        plt_ax.plot(lonp, latp, color=color, linewidth=linesize)
 
     return plt_ax
 
 
-def add_acpos(plt_ax, ac_df, curpt, ac_color):
+def add_acpos(plt_ax, ac_df, curpt, ac_color, dotsize):
     '''
     Adds an aircraft trajectory segment to a map plot
     Arguments:
@@ -121,13 +124,14 @@ def add_acpos(plt_ax, ac_df, curpt, ac_color):
         ac_df - the aircraft trajectory as a pandas dataframe
         curpt - the current position of the aircraft in the dataframe
         ac_color - colour to plot the trajectory, useful for multiple aircraft
+        dotsize - the size of the matplotlib marker to display
     Returns:
         plt_ax - the matplotlib plot
     '''
 
     lon = ac_df.Longitude[curpt]
     lat = ac_df.Latitude[curpt]
-    plt_ax.plot(lon, lat, marker='*', color=ac_color, markersize=2)
+    plt_ax.plot(lon, lat, marker='*', color=ac_color, markersize=dotsize*2)
 
     return plt_ax
 

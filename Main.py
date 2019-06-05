@@ -52,8 +52,14 @@ def main_aircraft_processing(opts):
     txt_pos = opts[20]
     cache_dir = opts[21]
     res = opts[22]
+    linewid = opts[23]
+    dotsiz = opts[24]
+    singlep = opts[25]
 
-    print("Beginning processing")
+    if (singlep):
+        print("Beginning processing for single point.")
+    else:
+        print("Beginning processing for trajectory.")
 
     if (flt_typ == 'CSV'):
         ac_traj = indata.read_aircraft_csv(flt_fil, beg_t, end_t)
@@ -61,8 +67,11 @@ def main_aircraft_processing(opts):
     ac_traj2 = utils.interp_ac(ac_traj, '30S')
 
     print("\t-\tLoaded aircraft trajectory.")
+    if (singlep):
+        plot_bounds = utils.calc_bounds_sp(ac_traj, lat_bnd, lon_bnd)
+    else:
+        plot_bounds = utils.calc_bounds_traj(ac_traj, lat_bnd, lon_bnd)
 
-    plot_bounds = utils.calc_bounds(ac_traj, lat_bnd, lon_bnd)
     n_traj_pts2 = len(ac_traj2)
 
     area = utils.create_area_def(plot_bounds, res)
@@ -92,14 +101,15 @@ def main_aircraft_processing(opts):
             print('\t-\tSatellite data already loaded for', sat_time)
 
         print('\t-\tPlotting and saving results')
-        fig = acplot.setup_plot(plot_bounds, bg_col)
+        fig = acplot.setup_plot(plot_bounds, bg_col, linewid)
 
         if (sat_img is not None):
             fig = acplot.overlay_sat(fig, sat_img, comp, sat_cmap)
 
-        fig = acplot.overlay_startend(fig, ac_traj2, ac_se_col)
-        fig = acplot.overlay_ac(fig, ac_traj2, i, ac_cmap, ac_mina, ac_maxa)
-        fig = acplot.add_acpos(fig, ac_traj2, i, ac_pos_col)
+        fig = acplot.overlay_startend(fig, ac_traj2, ac_se_col, dotsiz)
+        if (not singlep):
+            fig = acplot.overlay_ac(fig, ac_traj2, i, ac_cmap, ac_mina, ac_maxa, linewid)
+        fig = acplot.add_acpos(fig, ac_traj2, i, ac_pos_col, dotsiz)
 
         fig = acplot.overlay_time(fig, cur_time, txt_col, txt_size, txt_pos)
         acplot.save_output_plot(out_dir+str(i-1).zfill(4)+'_'+comp+'.png',
@@ -110,7 +120,7 @@ def main_aircraft_processing(opts):
     print("Completed processing")
 
 
-cache_dir = '/network/aopp/apres/users/proud/Progs/SATPY_Cache_DIR/'
+cache_dir = '/home/s/Satpy_Cache/'
 
 if (len(sys.argv) < 6 or len(sys.argv) > 8):
     utils.show_usage()
@@ -125,20 +135,23 @@ inopts = [s_d,  # Sat dir
           b_t,  # Initial processing time
           e_t,  # Ending processing time
           md,  # Scanning mode
-          'B03',  # Composite mode
-          0.05,  # Lat multiplier
-          0.5,  # Lon multiplier
+          'C02',  # Composite mode / band
+          0.3,  # Lat multiplier
+          0.3,  # Lon multiplier
           'Greys_r',  # Satellite colourmap
           'Red',  # Coastlines colour
-          'Green',  # Aircraft start/end position colour
+          'Red',  # Aircraft start/end position colour
           'viridis',  # Aircraft trajectory colourmap
           1000,  # Aircraft min altitude for colourmap
           35000,  # Aircraft max altitude for colourmap
           'Green',  # Aircraft position colour
           'Cyan',  # Text colour
           7,  # Text fontsize
-          [0.02, 0.98],  # Text position
+          [0.02, 0.95],  # Text position
           cache_dir,  # Cache dir for satpy
-          0.005]  # Output map resolution
+          0.025,  # Output map resolution
+          1.0, #  Linewidth for borders and trajectory
+          2.0, #  Dot size for start / end and current aircraft position
+          False]  # Single point mode, only one aircraft position
 
 main_aircraft_processing(inopts)
