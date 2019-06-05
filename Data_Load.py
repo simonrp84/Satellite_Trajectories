@@ -143,7 +143,7 @@ def load_sat(indir, in_time, comp_type, sensor, area_def, cache_dir, mode):
         print("Currently only Himawari-8/9 and GOES-R/S are supported.")
         quit()
 
-    scn = tmp_scn.resample(area_def, cache_dir=cache_dir)
+    scn = tmp_scn.resample(area_def, cache_dir=cache_dir, radius_of_influence=7000)
     return scn
 
 
