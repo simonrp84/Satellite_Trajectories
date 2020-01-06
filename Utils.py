@@ -56,36 +56,7 @@ def create_area_def(extent, res):
     return area_def
 
 
-def calc_bounds_sp(ac_pt, lat_bnd, lon_bnd):
-    '''
-    Calculate a scene bounding box from the aircraft point measurement
-    A buffer is added around the edges, given by the bound arguments
-    that specify a fraction of the whole scene to bound. For example,
-    if the extend is 20 degrees latitude and the latitude buffer is 0.1
-    then a 2 degree buffer will be added to the top + bottom
-    Arguments:
-        ac_traj - the aircraft trajectory dataframe
-        lat_bnd - the amount to buffer (top + bottom) on the y axis (lat)
-        lon_bnd - the amount to buffer (top + bottom) on the x axis (lon)
-    Returns:
-        extent - a list of bounds in format min_lon, max_lon, min_lat, max_lat
-    '''
-
-    lat = ac_pt['Latitude'].mean()
-    lon = ac_pt['Longitude'].mean()
-    
-    lat0 = lat - lat_bnd
-    lat1 = lat + lat_bnd
-    
-    lon0 = lon - lon_bnd
-    lon1 = lon + lon_bnd    
-
-    extent = [lon0, lon1, lat0, lat1]
-
-    return extent
-
-    
-def calc_bounds_traj(ac_traj, lat_bnd, lon_bnd):
+def calc_bounds(ac_traj, lat_bnd, lon_bnd):
     '''
     Calculate a scene bounding box from the aircraft trajectory
     A buffer is added around the edges, given by the bound arguments
@@ -201,7 +172,9 @@ def sort_args(inargs):
     flt_fil = inargs[2]
     sensor = inargs[3]
     mode = inargs[4]
-    out_dir = inargs[5]
+    flt_type = inargs[5]
+    out_dir = inargs[6]
+    tag = inargs[7]
 
     if (not os.path.isdir(sat_dir)):
         print("Incorrect satellite data directory!")
@@ -215,17 +188,15 @@ def sort_args(inargs):
     if (sensor not in senlist):
         print("Incorrect sensor!")
         show_usage()
-    if (len(inargs) >= 7):
-        dtstr = inargs[6]
+    if (len(inargs) >= 9):
+        dtstr = inargs[8]
         init_t = datetime.strptime(dtstr, "%Y%m%d%H%M%S")
-    if (len(inargs) >= 8):
-        dtstr = inargs[7]
+    if (len(inargs) >= 10):
+        dtstr = inargs[9]
         end_t = datetime.strptime(dtstr, "%Y%m%d%H%M%S")
 
-    if flt_fil.find(".csv"):
-        flt_type = 'CSV'
-
-    return sat_dir, flt_fil, sensor, mode, flt_type, out_dir, init_t, end_t
+    return sat_dir, flt_fil, sensor, mode, flt_type, out_dir, \
+        init_t, end_t, tag
 
 
 def get_startend(ac_traj, sensor, mode):
@@ -281,12 +252,15 @@ def get_sat_time(inti, timestep):
     '''
 
     outti = inti
-    for i in range(0, len(timestep)):
-        if (inti.minute >= timestep[i]):
+    for i in range(1, len(timestep)):
+        tempt = float(inti.minute) + inti.second / 60.
+        if timestep[i] > tempt:
+            tmin = int(timestep[i-1])
+            tsec = (timestep[i-1] - tmin) * 60
             outti = datetime(inti.year, inti.month, inti.day,
-                             inti.hour, timestep[i])
-
-    outti = outti.replace(second=0, microsecond=0)
+                             inti.hour, tmin, int(tsec))
+            break
+    outti = outti.replace(microsecond=0)
 
     return outti
 
@@ -305,6 +279,8 @@ def sat_timestep_time(sensor, mode):
     if (sensor == 'AHI'):
         if (mode == 'FD'):
             return 10
+        elif (mode == 'MESO'):
+            return 2.5
         else:
             return -1
     elif (sensor == 'ABI'):
@@ -336,16 +312,14 @@ def sat_timesteps(sensor, mode):
     if (sensor == 'AHI'):
         if (mode == 'FD'):
             return np.linspace(0, 50, 6, dtype=np.int)
+        elif (mode == 'MESO'):
+            return np.linspace(0, 60, 25, dtype=np.float32)
         else:
             return -1
     elif (sensor == 'ABI'):
-        if (mode == 'FD'):
-            return np.linspace(0, 50, 6, dtype=np.int)
-        elif (mode == 'CONUS' or mode == 'PACUS'):
+        if (mode == 'CONUS' or mode == 'PACUS'):
             return np.linspace(0, 55, 12, dtype=np.int)
-        elif (mode == 'M1' or mode == 'M2'):
+        if (mode == 'M1' or mode == 'M2'):
             return np.linspace(0, 59, 60, dtype=np.int)
-        else:
-            return -1
     else:
         return -1

@@ -17,6 +17,7 @@ from pandas import read_csv, to_datetime
 from satpy import Scene
 from satpy import find_files_and_readers as ffar
 import Utils as utils
+from glob import glob
 
 
 # Use these lines to enable debug mode, useful if satellite data
@@ -24,7 +25,6 @@ import Utils as utils
 # from satpy.utils import debug_on
 # debug_on()
 
-import warnings
 
 try:
     import eurocontrol_reader as eurordr
@@ -38,6 +38,44 @@ except ImportError:
 
 def dateparse(x):
     return datetime.strptime(x, '%d/%m/%y %H:%M:%S')
+
+
+def dateparse_fr24(x):
+    return datetime.strptime(x, '%Y-%m-%dT%H:%M:%SZ')
+
+
+def read_aircraft_fr24(infile, start_t, end_t):
+    '''
+    This function will convert a CSV file downloaded from FlightRadar24
+    into a pandas dataframe.
+    Arguments:
+        infile - the file containing aircraft trajectory information
+        start_t - the desired start time, earlier data is removed
+        end_t - the desired ending time, later data is removed
+    Returns:
+        ac_traj - a pandas dataframe holding the aircraft trajectory
+    '''
+
+    ac_traj = read_csv(infile, parse_dates=['UTC'], date_parser=dateparse_fr24)
+    ac_traj = ac_traj.rename(columns={'UTC': 'Datetime'})
+    ac_traj.drop(columns=['Timestamp'], inplace=True)
+
+    # We need to split the position column into lat/lon
+    tmp = ac_traj["Position"].str.split(",", n=1, expand=True)
+    ac_traj["Latitude"] = tmp[0]
+    ac_traj["Latitude"] = ac_traj["Latitude"].astype(float)
+    ac_traj["Longitude"] = tmp[1]
+    ac_traj["Longitude"] = ac_traj["Longitude"].astype(float)
+    ac_traj.drop(columns=['Position'], inplace=True)
+
+    if (start_t is not None):
+        ac_traj = ac_traj[ac_traj['Datetime'] >= start_t]
+    if (end_t is not None):
+        ac_traj = ac_traj[ac_traj['Datetime'] <= end_t]
+    ac_traj = ac_traj.set_index('Datetime')
+    ac_traj.index = to_datetime(ac_traj.index)
+
+    return ac_traj
 
 
 def read_aircraft_csv(infile, start_t, end_t):
@@ -129,7 +167,7 @@ def load_sat(indir, in_time, comp_type, sensor, area_def, cache_dir, mode):
     timedelt = utils.sat_timestep_time(sensor, mode)
     if (sensor == "AHI"):
         try:
-            tmp_scn = load_himawari(indir, in_time, comp_type, timedelt)
+            tmp_scn = load_himawari(indir, in_time, comp_type, timedelt, mode)
         except ValueError:
             print("ERROR: No satellite data available for", in_time)
             return None
@@ -142,12 +180,11 @@ def load_sat(indir, in_time, comp_type, sensor, area_def, cache_dir, mode):
     else:
         print("Currently only Himawari-8/9 and GOES-R/S are supported.")
         quit()
-
-    scn = tmp_scn.resample(area_def, cache_dir=cache_dir, radius_of_influence=7000)
+    scn = tmp_scn.resample(area_def, cache_dir=cache_dir)
     return scn
 
 
-def load_himawari(indir, in_time, comp_type, timedelt):
+def load_himawari(indir, in_time, comp_type, timedelt, mode):
     '''
     This function will load a Himawari/AHI scene as given by img_time
     img_time should be the *start* time for the scan, as the ending time
@@ -160,16 +197,28 @@ def load_himawari(indir, in_time, comp_type, timedelt):
         img_time - a datetime indicating the scene start time in UTC
         comp_type - the Satpy composite to create (true_color, B03, etc)
         timedelt - the scanning time delta (10 min for full disk AHI)
+        mode - scanning mode (FD = Full disk, MESO = Mesoscale sector)
     Returns:
         sat_data - the satellite data object, unresampled
     '''
+    if mode == 'MESO':
+        tmp_t = in_time
+        minu = tmp_t.minute
+        minu = minu - (minu % 10)
 
-    files = ffar(start_time=in_time,
-                 end_time=in_time + timedelta(minutes=timedelt-1),
-                 base_dir=indir,
-                 reader='ahi_hsd')
+        tmp_t = tmp_t.replace(minute=minu)
+        tmp_t = tmp_t.replace(second=0)
+        dt = (in_time - tmp_t).total_seconds() / 60.
+        src_str = '*_R30' + str(int(dt/timedelt) + 1) + '*'
+        dtstr = tmp_t.strftime("%Y%m%d_%H%M")
+        files = glob(indir + '*' + dtstr + src_str + '.DAT')
+    else:
+        files = ffar(start_time=in_time,
+                     end_time=in_time + timedelta(minutes=timedelt-1),
+                     base_dir=indir,
+                     reader='ahi_hsd')
 
-    scn = Scene(sensor='ahi_hsd', filenames=files)
+    scn = Scene(reader='ahi_hsd', filenames=files)
     scn.load([comp_type])
 
     return scn
