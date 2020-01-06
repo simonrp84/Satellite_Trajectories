@@ -1,5 +1,6 @@
-'''
-This library overlays aircraft trajectories onto satellite images.
+"""
+A library to overlay aircraft trajectories on satellite images.
+
 Useful for examining incidents such as weather encounters.
 
 Currently supported aircraft data:
@@ -17,18 +18,22 @@ main_aircraft_processing(), and an example of how to call it.
 Currently an 'opts' list must be passed. In this future this will
 become a class, which would be easier to use.
 
-'''
+"""
 
 from datetime import datetime
 
 import Utils as utils
 import Data_Load as indata
 import Plotting as acplot
+import logging
 import sys
+
+logger = logging.getLogger()
+logger.disabled = True
 
 
 def main_aircraft_processing(opts):
-
+    """Control routine for processing."""
     sat_dir = opts[0]
     flt_fil = opts[1]
     sensor = opts[2]
@@ -127,7 +132,7 @@ def main_aircraft_processing(opts):
         acplot.save_output_plot(out_dir + str(i-1).zfill(4)
                                 + '_' + comp + '_'
                                 + tag + '.png',
-                                fig, 600)
+                                fig, 90)
         fig.clf()
         fig.close()
 
@@ -154,24 +159,24 @@ inopts = [s_d,  # Sat dir
           b_t,  # Initial processing time
           e_t,  # Ending processing time
           md,  # Scanning mode
-          'B03',  # Composite mode
+          'true_color',  # Composite mode
           0.15,  # Lat multiplier
           0.15,  # Lon multiplier
           'Greys_r',  # Satellite colourmap
           'Red',  # Coastlines colour
-          'Green',  # Aircraft start/end position colour
+          'Red',  # Aircraft start/end position colour
           'viridis',  # Aircraft trajectory colourmap
           1000,  # Aircraft min altitude for colourmap
           35000,  # Aircraft max altitude for colourmap
-          'Green',  # Aircraft position colour
+          'Red',  # Aircraft position colour
           'Red',  # Text colour
-          7,  # Text fontsize
+          15,  # Text fontsize
           [0.02, 0.95],  # Text position
           cache_dir,  # Cache dir for satpy
-          0.005,  # Output map resolution
+          0.0085,  # Output map resolution
           tag,  # Tag to include in name of output file, often callsign
-          1.0,  # Linewidth for borders and trajectory
-          2.0,  # Dot size for start / end and current aircraft position
+          2.0,  # Linewidth for borders and trajectory
+          3.0,  # Dot size for start / end and current aircraft position
           False]  # Single point mode, only one aircraft position
 
 main_aircraft_processing(inopts)

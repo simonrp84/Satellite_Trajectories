@@ -1,9 +1,9 @@
-'''
-A selection of utility functions for parsing input options,
-setting up the area of interest, pre-processing aircraft data
-and returning useful satellite parameters.
-'''
+"""
+Utility functions for parsing input options.
 
+Setting up the area of interest, pre-processing aircraft data
+and returning useful satellite parameters.
+"""
 
 import os
 import numpy as np
@@ -14,9 +14,7 @@ from pyresample import create_area_def as create_area_def_pyr
 
 
 def show_usage():
-    '''
-    A routine that shows usage instructions and then quits.
-    '''
+    """Show usage instructions and quit."""
     print("A python aircraft trajectory plotter.")
     print('Call with:')
     print('python Main.py /sat/datadir/ /path/to/traj sat_type\
@@ -36,16 +34,16 @@ def show_usage():
 
 
 def create_area_def(extent, res):
-    '''
-    Creates a pyresample area definition covering the aircraft flightpath
+    """
+    Create a pyresample area definition covering the aircraft flightpath.
+
     Arguments:
         extent - the lat/lon bounding box of the flightpath
                  [lon_0,lon_1,lat_0,lat_1]
         res - the area resolution in degrees
     Returns:
         area_def - the corresponding area definition
-    '''
-
+    """
     new_extent = [extent[0], extent[2], extent[1], extent[3]]
     area_id = 'temporary_area'
     proj_dict = {'proj': 'eqc'}
@@ -57,8 +55,9 @@ def create_area_def(extent, res):
 
 
 def calc_bounds_sp(ac_pt, lat_bnd, lon_bnd):
-    '''
-    Calculate a scene bounding box from the aircraft point measurement
+    """
+    Calculate a scene bounding box from the aircraft point measurement.
+
     A buffer is added around the edges, given by the bound arguments
     that specify a fraction of the whole scene to bound. For example,
     if the extend is 20 degrees latitude and the latitude buffer is 0.1
@@ -69,8 +68,7 @@ def calc_bounds_sp(ac_pt, lat_bnd, lon_bnd):
         lon_bnd - the amount to buffer (top + bottom) on the x axis (lon)
     Returns:
         extent - a list of bounds in format min_lon, max_lon, min_lat, max_lat
-    '''
-
+    """
     lat = ac_pt['Latitude'].mean()
     lon = ac_pt['Longitude'].mean()
 
@@ -86,8 +84,9 @@ def calc_bounds_sp(ac_pt, lat_bnd, lon_bnd):
 
 
 def calc_bounds_traj(ac_traj, lat_bnd, lon_bnd):
-    '''
-    Calculate a scene bounding box from the aircraft trajectory
+    """
+    Calculate a scene bounding box from the aircraft trajectory.
+
     A buffer is added around the edges, given by the bound arguments
     that specify a fraction of the whole scene to bound. For example,
     if the extend is 20 degrees latitude and the latitude buffer is 0.1
@@ -98,8 +97,7 @@ def calc_bounds_traj(ac_traj, lat_bnd, lon_bnd):
         lon_bnd - the fraction to buffer (top + bottom) on the x axis (lon)
     Returns:
         extent - a list of bounds in format min_lon, max_lon, min_lat, max_lat
-    '''
-
+    """
     lat_min = ac_traj['Latitude'].min()
     lat_max = ac_traj['Latitude'].max()
     lat_diff = lat_max - lat_min
@@ -120,8 +118,9 @@ def calc_bounds_traj(ac_traj, lat_bnd, lon_bnd):
 
 
 def interp_ac(ac_traj, freq):
-    '''
-    Interpolates the aircraft trajectory onto a fixed tUtils.pyime interval
+    """
+    Interpolate the aircraft trajectory onto a fixed time interval.
+
     This is required to neutralise 'jumps' in the trajectory caused
     by, for example, an aircraft temporarily passing out of ADS-B coverage
     In order for this to work do not pass pre-extrapolated data, such as
@@ -131,8 +130,7 @@ def interp_ac(ac_traj, freq):
         freq - the desired temporal frequency (e.g.: '30s' for 30 seconds)
     Returns:
         ot - the interpolated trajectory (lat/lon/alt only)
-    '''
-
+    """
     # We need times in unix format
     in_times = ac_traj.index.astype(np.int64) // 10**9
 
@@ -171,9 +169,8 @@ def interp_ac(ac_traj, freq):
 
 
 def sort_args(inargs):
-    '''
-    Checks that command line arguments are suitable and sorts data into
-    correct formats
+    """
+    Check that arguments are suitable and sorts data into correct format.
 
     Arguments:
         inargs - list of command line arguments (eg: sys.argv)
@@ -190,8 +187,7 @@ def sort_args(inargs):
                  if no command line arg for end_t is given then end_t = None
 
     !!!   NOTE: Mode/Sensor combinations are not checked here   !!!
-    '''
-
+    """
     senlist = ['AHI', 'ABI', 'SEV', 'AGR']
 
     init_t = None
@@ -229,8 +225,9 @@ def sort_args(inargs):
 
 
 def get_startend(ac_traj, sensor, mode):
-    '''
-    Computes the start and end date for a given aircraft trajectory
+    """
+    Compute the start and end date for a given aircraft trajectory.
+
     Arguments:
         ac_traj - the aircraft trajectory dataframe
         sensor - the name of the satellite sensor (AHI, for example)
@@ -239,8 +236,7 @@ def get_startend(ac_traj, sensor, mode):
         start_time - the datetime of the first aircraft position
         end_time - the datetime of the last aircraft position
         total_ac_time - the total elapsed time for the trajectory
-    '''
-
+    """
     timestep = sat_timesteps(sensor, mode)
     start_time = get_sat_time(ac_traj.index[0], timestep)
     end_time = get_sat_time(ac_traj.index[len(ac_traj) - 1], timestep)
@@ -253,17 +249,16 @@ def get_startend(ac_traj, sensor, mode):
 
 
 def get_cur_sat_time(cur_t, sensor, mode):
-    '''
-    Computes the appropriate satellite image start time for
-    a given aircraft trajectory point.
+    """
+    Compute the sat start time for a given aircraft trajectory point.
+
     Arguments:
         cur_t - the time associated with the aircraft trajectory point
         sensor - the name of the satellite sensor (AHI, for example)
         mode - the sensor scanning mode (FD for full disk)
     Returns:
         sat_time - the satellite scan start time
-    '''
-
+    """
     timestep = sat_timesteps(sensor, mode)
     sat_time = get_sat_time(cur_t, timestep)
 
@@ -271,15 +266,15 @@ def get_cur_sat_time(cur_t, sensor, mode):
 
 
 def get_sat_time(inti, timestep):
-    '''
-    Computes the satellite scan start time for a given input timestamp
+    """
+    Compute the satellite scan start time for a given input timestamp.
+
     Arguments:
         inti - the timestamp to compare with
         timestep - the satellite scan time (in minutes)
     Returns:
         outti - the satellite scan start time
-    '''
-
+    """
     outti = inti
     for i in range(1, len(timestep)):
         tempt = float(inti.minute) + inti.second / 60.
@@ -295,16 +290,16 @@ def get_sat_time(inti, timestep):
 
 
 def sat_timestep_time(sensor, mode):
-    '''
-    Determines the satellite timestep amount
+    """
+    Determine the satellite timestep amount.
+
     Arguments:
         sensor - the sensor name
         mode - the scanning mode
     Returns:
         A time value in minutes for each scan.
         If unknown sensor/mode combination then returns -1
-    '''
-
+    """
     if (sensor == 'AHI'):
         if (mode == 'FD'):
             return 10
@@ -330,14 +325,15 @@ def sat_timestep_time(sensor, mode):
 
 
 def sat_timesteps(sensor, mode):
-    '''
-    Determines the satellite timesteps per hour
+    """
+    Determine the satellite timesteps per hour.
+
+    Arguments:
         sensor - the sensor name
         mode - the scanning mode
     Returns:
         A list of scan start times in the hour (given in minutes)
-    '''
-
+    """
     if (sensor == 'AHI'):
         if (mode == 'FD'):
             return np.linspace(0, 50, 6, dtype=np.int)

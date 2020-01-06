@@ -1,5 +1,6 @@
-'''
-Contains functions related to reading aircraft and satellite data formats
+"""
+Functions related to reading aircraft and satellite data formats.
+
 Currently supported aircraft data:
     -   EUROCONTROL SO6
     -   Flight data management / QAR output
@@ -9,7 +10,7 @@ Currently supported satellite data:
     -   GOES R/S in all modes
 
 Satellite data requires the Satpy library.
-'''
+"""
 
 from pandas import datetime
 from datetime import timedelta
@@ -37,25 +38,26 @@ except ImportError:
 
 
 def dateparse(x):
+    """Parse timestamps in FA CSV files."""
     return datetime.strptime(x, '%d/%m/%y %H:%M:%S')
 
 
 def dateparse_fr24(x):
+    """Parse timestamps in Flightradar24 CSV files."""
     return datetime.strptime(x, '%Y-%m-%dT%H:%M:%SZ')
 
 
 def read_aircraft_fr24(infile, start_t, end_t):
-    '''
-    This function will convert a CSV file downloaded from FlightRadar24
-    into a pandas dataframe.
+    """
+    Convert a CSV file downloaded from FlightRadar24 into a pandas dataframe.
+
     Arguments:
         infile - the file containing aircraft trajectory information
         start_t - the desired start time, earlier data is removed
         end_t - the desired ending time, later data is removed
     Returns:
         ac_traj - a pandas dataframe holding the aircraft trajectory
-    '''
-
+    """
     ac_traj = read_csv(infile, parse_dates=['UTC'], date_parser=dateparse_fr24)
     ac_traj = ac_traj.rename(columns={'UTC': 'Datetime'})
     ac_traj.drop(columns=['Timestamp'], inplace=True)
@@ -79,8 +81,9 @@ def read_aircraft_fr24(infile, start_t, end_t):
 
 
 def read_aircraft_csv(infile, start_t, end_t):
-    '''
-    This function will convert a CSV file into a pandas dataframe
+    """
+    Convert an FA CSV file into a pandas dataframe.
+
     Expected columns are: Datetime, Latitude, Longitude, Altitude
     Where Datetime is in the form Day/Month/Year Hour:Minute:Second
     e.g: 26/05/19 05:36:24, 51.47, -0.4543, 0
@@ -91,8 +94,7 @@ def read_aircraft_csv(infile, start_t, end_t):
         end_t - the desired ending time, later data is removed
     Returns:
         ac_traj - a pandas dataframe holding the aircraft trajectory
-    '''
-
+    """
     ac_traj = read_csv(infile,
                        parse_dates=['Datetime'],
                        date_parser=dateparse)
@@ -108,8 +110,9 @@ def read_aircraft_csv(infile, start_t, end_t):
 
 
 def read_aircraft_fdm(infile, start_t, end_t):
-    '''
-    This function will convert a FDM file (EK format) into a pandas dataframe
+    """
+    Convert a FDM file (EK format) into a pandas dataframe.
+
     Currently only the date/time, position and altitude are imported.
     Arguments:
         infile - the file containing aircraft trajectory information
@@ -117,8 +120,7 @@ def read_aircraft_fdm(infile, start_t, end_t):
         end_t - the desired ending time, later data is removed
     Returns:
         ac_traj - a pandas dataframe holding the aircraft trajectory
-    '''
-
+    """
     try:
         ac_traj = fdmr.read_ekr(infile, start_t, end_t)
     except ImportError:
@@ -128,8 +130,9 @@ def read_aircraft_fdm(infile, start_t, end_t):
 
 
 def read_aircraft_euro(infile, start_t, end_t):
-    '''
-    This function will convert a EUROCONTROL SO6 file into a pandas dataframe
+    """
+    Convert a EUROCONTROL SO6 file into a pandas dataframe.
+
     Currently only the date/time, position and altitude are imported.
     Eventually this will be replaced with Xavier Olive's 'traffic' library.
     Arguments:
@@ -138,8 +141,7 @@ def read_aircraft_euro(infile, start_t, end_t):
         end_t - the desired ending time, later data is removed
     Returns:
         ac_traj - a pandas dataframe holding the aircraft trajectory
-    '''
-
+    """
     try:
         ac_traj = eurordr.read_so6(infile, start_t, end_t)
     except ImportError:
@@ -149,9 +151,10 @@ def read_aircraft_euro(infile, start_t, end_t):
 
 
 def load_sat(indir, in_time, comp_type, sensor, area_def, cache_dir, mode):
-    '''
-    This is a wrapper for loading and resampling satellite data, it chooses
-    which load routines to use based upon the sensor type.
+    """
+    Load and resample satellite data from various sensors.
+
+    It chooses which load routines to use based upon the sensor type.
     Arguments:
         indir - directory holding the satellite data
         in_time - a datetime indicating the scene start time in UTC
@@ -162,8 +165,7 @@ def load_sat(indir, in_time, comp_type, sensor, area_def, cache_dir, mode):
         mode - the scanning mode, 'FD' for full disk, 'CONUS', 'RSS', etc
     Returns:
         sat_data - a remapped satellite data field / composite
-    '''
-
+    """
     timedelt = utils.sat_timestep_time(sensor, mode)
     if (sensor == "AHI"):
         try:
@@ -185,8 +187,9 @@ def load_sat(indir, in_time, comp_type, sensor, area_def, cache_dir, mode):
 
 
 def load_himawari(indir, in_time, comp_type, timedelt, mode):
-    '''
-    This function will load a Himawari/AHI scene as given by img_time
+    """
+    Load a Himawari/AHI scene as given by img_time.
+
     img_time should be the *start* time for the scan, as the ending time
     will be automatically defined from this using timedelt
 
@@ -200,7 +203,7 @@ def load_himawari(indir, in_time, comp_type, timedelt, mode):
         mode - scanning mode (FD = Full disk, MESO = Mesoscale sector)
     Returns:
         sat_data - the satellite data object, unresampled
-    '''
+    """
     if mode == 'MESO':
         tmp_t = in_time
         minu = tmp_t.minute
@@ -212,6 +215,7 @@ def load_himawari(indir, in_time, comp_type, timedelt, mode):
         src_str = '*_R30' + str(int(dt/timedelt) + 1) + '*'
         dtstr = tmp_t.strftime("%Y%m%d_%H%M")
         files = glob(indir + '*' + dtstr + src_str + '.DAT')
+        files.sort()
     else:
         files = ffar(start_time=in_time,
                      end_time=in_time + timedelta(minutes=timedelt-1),
@@ -225,8 +229,9 @@ def load_himawari(indir, in_time, comp_type, timedelt, mode):
 
 
 def load_goes(indir, in_time, comp_type, timedelt):
-    '''
-    This function will load a GOES/ABI scene as given by img_time
+    """
+    Load a GOES/ABI scene as given by img_time.
+
     img_time should be the *start* time for the scan, as the ending time
     will be automatically defined from this using timedelt
 
@@ -239,8 +244,7 @@ def load_goes(indir, in_time, comp_type, timedelt):
         timedelt - the scanning time delta (10 min for full disk ABI)
     Returns:
         sat_data - the satellite data object, unresampled
-    '''
-
+    """
     files = ffar(start_time=in_time,
                  end_time=in_time + timedelta(minutes=timedelt-1),
                  base_dir=indir,

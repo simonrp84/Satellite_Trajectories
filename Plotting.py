@@ -1,32 +1,37 @@
-'''
-These functions are useful for plotting the resulting aircraft and satellite
-data. Currently, many assumptions are made (such as the wish to colour-code
+"""
+Functions for plotting the resulting aircraft and satellite data.
+
+Currently, many assumptions are made (such as the wish to colour-code
 the aircraft track by altitude. In the future these will be made more generic/
 customisable.
-'''
+"""
 
 import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
+from satpy.writers import get_enhanced_image
+
+import numpy as np
 
 
 def save_output_plot(outname, plot, out_dpi):
-    '''
-    Saves the plot object to the desired file, uses tight bounding box
+    """
+    Save the plot object to the desired file, uses tight bounding box.
+
     Arguments:
         outname - the output filename for saving (format chosen from name)
         plot - the matplotlib object
         out_dpi - the requested pixels per inch of the output file
     Returns:
         nothing
-    '''
-
+    """
     plt.savefig(outname, bbox_inches='tight', pad_inches=0, dpi=out_dpi)
 
 
 def setup_plot(extent, bg_col, linewid):
-    '''
-    Setup the matplotlib output figure
+    """
+    Initialise the matplotlib output figure.
+
     This will add a coastline overlay to your image
     Argument:
         extent - desired image extent as lon_min, lon_max, lat_min, lat_max
@@ -34,7 +39,7 @@ def setup_plot(extent, bg_col, linewid):
         linewid - the width of the lines to plot coastlines
     Returns:
         plt - the matplotlib axes object for using in plot creation
-    '''
+    """
     ax = plt.axes([0, 0, 1, 1],
                   projection=ccrs.PlateCarree(),
                   facecolor='black')
@@ -58,9 +63,10 @@ def setup_plot(extent, bg_col, linewid):
 
 
 def overlay_startend(plt_ax, ac_df, ac_color, dotsize):
-    '''
-    Adds a start and end marker to a plot, showing aircraft
-    origin and destination as stars
+    """
+    Add a start and end marker to a plot.
+
+    Shows aircraft origin and destination as stars
     Arguments:
         plt_ax - the matplotlib axes object to use for plotting
         ac_df - the aircraft trajectory as a pandas dataframe
@@ -68,8 +74,7 @@ def overlay_startend(plt_ax, ac_df, ac_color, dotsize):
         dotsize - the size of the matplotlib marker to display
     Returns:
         plt - the matplotlib plot
-    '''
-
+    """
     lon0 = ac_df.Longitude[0]
     lat0 = ac_df.Latitude[0]
     lon1 = ac_df.Longitude[len(ac_df)-1]
@@ -81,8 +86,9 @@ def overlay_startend(plt_ax, ac_df, ac_color, dotsize):
 
 
 def overlay_ac(plt_ax, ac_df, traj_lim, ac_cmap, minalt, maxalt, linesize):
-    '''
-    Adds an aircraft trajectory segment to a map plot
+    """
+    Add an aircraft trajectory segment to a map plot.
+
     Arguments:
         plt_ax - the matplotlib axes object to use for plotting
         ac_df - the aircraft trajectory as a pandas dataframe
@@ -93,8 +99,7 @@ def overlay_ac(plt_ax, ac_df, traj_lim, ac_cmap, minalt, maxalt, linesize):
         linesize - the width of the line used to draw the trajectory
     Returns:
         plt - the matplotlib plot
-    '''
-
+    """
     cmap = plt.cm.get_cmap(ac_cmap)
 
     lons = ac_df.Longitude[0: traj_lim+1].values
@@ -120,8 +125,9 @@ def overlay_ac(plt_ax, ac_df, traj_lim, ac_cmap, minalt, maxalt, linesize):
 
 
 def add_acpos(plt_ax, ac_df, curpt, ac_color, dotsize):
-    '''
-    Adds an aircraft trajectory segment to a map plot
+    """
+    Add an aircraft trajectory segment to a map plot.
+
     Arguments:
         plt_ax - the matplotlib axes object to use for plotting
         ac_df - the aircraft trajectory as a pandas dataframe
@@ -130,8 +136,7 @@ def add_acpos(plt_ax, ac_df, curpt, ac_color, dotsize):
         dotsize - the size of the matplotlib marker to display
     Returns:
         plt_ax - the matplotlib plot
-    '''
-
+    """
     lon = ac_df.Longitude[curpt]
     lat = ac_df.Latitude[curpt]
     plt_ax.plot(lon, lat, marker='*', color=ac_color, markersize=dotsize*2)
@@ -140,8 +145,9 @@ def add_acpos(plt_ax, ac_df, curpt, ac_color, dotsize):
 
 
 def overlay_sat(plt_ax, sat_img, comp_type, sat_cmap):
-    '''
-    Adds a satellite image as the map background to a plot
+    """
+    Add a satellite image as the map background to a plot.
+
     Arguments:
         plt_ax - the matplotlib axes object to use for plotting
         sat_img - the image to use, must be specified as a SatPy scene
@@ -150,17 +156,30 @@ def overlay_sat(plt_ax, sat_img, comp_type, sat_cmap):
 
     Returns:
         plt_ax - the matplotlib plot
-    '''
+    """
+    img = sat_img[comp_type]
+    crs = img.attrs['area'].to_cartopy_crs()
+    if len(img.shape) > 2:
+        # This is for a multiband image, such as true color
+        img = get_enhanced_image(sat_img[comp_type]).data
+        img = np.swapaxes(img.values, 0, 2)
+        img = np.swapaxes(img, 0, 1)
+        plt_ax.imshow(img, transform=crs, extent=crs.bounds,
+                      origin='upper')
+    else:
+        # This is for a one-band image: B03, HRV, etc
+        mini = np.nanpercentile(sat_img[comp_type], 1)
+        maxi = np.nanpercentile(sat_img[comp_type], 99.5)
+        plt_ax.imshow(img, transform=crs, extent=crs.bounds,
+                      origin='upper', cmap=sat_cmap, vmin=mini, vmax=maxi)
 
-    crs = sat_img[comp_type].attrs['area'].to_cartopy_crs()
-    plt_ax.imshow(sat_img[comp_type], transform=crs, cmap=sat_cmap,
-                  extent=crs.bounds, origin='upper')
     return plt_ax
 
 
 def overlay_time(plt_ax, cur_time, txt_col, txt_size, pos):
-    '''
-    Adds a timestamp overlay to the map plot in the top left
+    """
+    Add a timestamp overlay to the map plot in the top left.
+
     Arguments:
         plt_ax - the matplotlib axes object to use for plotting
         cur_time - the timestamp to display on the image
@@ -169,8 +188,7 @@ def overlay_time(plt_ax, cur_time, txt_col, txt_size, pos):
 
     Returns:
         plt_ax - the matplotlib plot
-    '''
-
+    """
     ax = plt_ax.gca()
 
     dtstr = cur_time.strftime("%Y-%m-%d %H:%M:%S")
