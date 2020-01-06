@@ -53,6 +53,9 @@ def main_aircraft_processing(opts):
     cache_dir = opts[21]
     res = opts[22]
     tag = opts[23]
+    linewid = opts[24]
+    dotsiz = opts[25]
+    singlep = opts[26]
 
     print("Beginning processing")
 
@@ -70,8 +73,11 @@ def main_aircraft_processing(opts):
 
     if verbose:
         print("\t-\tLoaded aircraft trajectory.")
+    if (singlep):
+        plot_bounds = utils.calc_bounds_sp(ac_traj, lat_bnd, lon_bnd)
+    else:
+        plot_bounds = utils.calc_bounds_traj(ac_traj, lat_bnd, lon_bnd)
 
-    plot_bounds = utils.calc_bounds(ac_traj, lat_bnd, lon_bnd)
     n_traj_pts2 = len(ac_traj2)
 
     area = utils.create_area_def(plot_bounds, res)
@@ -106,14 +112,17 @@ def main_aircraft_processing(opts):
         if verbose:
             print('\t-\tPlotting and saving results')
 
-        fig = acplot.setup_plot(plot_bounds, bg_col)
+        fig = acplot.setup_plot(plot_bounds, bg_col, linewid)
 
         if (sat_img is not None):
             fig = acplot.overlay_sat(fig, sat_img, comp, sat_cmap)
 
-        fig = acplot.overlay_startend(fig, ac_traj2, ac_se_col)
-        fig = acplot.overlay_ac(fig, ac_traj2, i, ac_cmap, ac_mina, ac_maxa)
-        fig = acplot.add_acpos(fig, ac_traj2, i, ac_pos_col)
+        fig = acplot.overlay_startend(fig, ac_traj2, ac_se_col, dotsiz)
+        if (not singlep):
+            fig = acplot.overlay_ac(fig, ac_traj2,
+                                    i, ac_cmap, ac_mina,
+                                    ac_maxa, linewid)
+        fig = acplot.add_acpos(fig, ac_traj2, i, ac_pos_col, dotsiz)
 
         fig = acplot.overlay_time(fig, cur_time, txt_col, txt_size, txt_pos)
         acplot.save_output_plot(out_dir + str(i-1).zfill(4)
@@ -147,8 +156,8 @@ inopts = [s_d,  # Sat dir
           e_t,  # Ending processing time
           md,  # Scanning mode
           'B03',  # Composite mode
-          0.05,  # Lat multiplier
-          0.5,  # Lon multiplier
+          0.15,  # Lat multiplier
+          0.15,  # Lon multiplier
           'Greys_r',  # Satellite colourmap
           'Red',  # Coastlines colour
           'Green',  # Aircraft start/end position colour
@@ -161,6 +170,9 @@ inopts = [s_d,  # Sat dir
           [0.02, 0.95],  # Text position
           cache_dir,  # Cache dir for satpy
           0.0075,  # Output map resolution
-          tag]  # Tag to include in name of output file, often callsign
+          tag,  # Tag to include in name of output file, often callsign
+          1.0,  # Linewidth for borders and trajectory
+          2.0,  # Dot size for start / end and current aircraft position
+          False]  # Single point mode, only one aircraft position
 
 main_aircraft_processing(inopts)

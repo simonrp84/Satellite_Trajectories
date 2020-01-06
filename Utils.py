@@ -56,7 +56,36 @@ def create_area_def(extent, res):
     return area_def
 
 
-def calc_bounds(ac_traj, lat_bnd, lon_bnd):
+def calc_bounds_sp(ac_pt, lat_bnd, lon_bnd):
+    '''
+    Calculate a scene bounding box from the aircraft point measurement
+    A buffer is added around the edges, given by the bound arguments
+    that specify a fraction of the whole scene to bound. For example,
+    if the extend is 20 degrees latitude and the latitude buffer is 0.1
+    then a 2 degree buffer will be added to the top + bottom
+    Arguments:
+        ac_traj - the aircraft trajectory dataframe
+        lat_bnd - the amount to buffer (top + bottom) on the y axis (lat)
+        lon_bnd - the amount to buffer (top + bottom) on the x axis (lon)
+    Returns:
+        extent - a list of bounds in format min_lon, max_lon, min_lat, max_lat
+    '''
+
+    lat = ac_pt['Latitude'].mean()
+    lon = ac_pt['Longitude'].mean()
+
+    lat0 = lat - lat_bnd
+    lat1 = lat + lat_bnd
+
+    lon0 = lon - lon_bnd
+    lon1 = lon + lon_bnd
+
+    extent = [lon0, lon1, lat0, lat1]
+
+    return extent
+
+
+def calc_bounds_traj(ac_traj, lat_bnd, lon_bnd):
     '''
     Calculate a scene bounding box from the aircraft trajectory
     A buffer is added around the edges, given by the bound arguments
@@ -92,7 +121,7 @@ def calc_bounds(ac_traj, lat_bnd, lon_bnd):
 
 def interp_ac(ac_traj, freq):
     '''
-    Interpolates the aircraft trajectory onto a fixed time interval
+    Interpolates the aircraft trajectory onto a fixed tUtils.pyime interval
     This is required to neutralise 'jumps' in the trajectory caused
     by, for example, an aircraft temporarily passing out of ADS-B coverage
     In order for this to work do not pass pre-extrapolated data, such as

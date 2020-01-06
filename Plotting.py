@@ -9,8 +9,6 @@ import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
 
-import numpy as np
-
 
 def save_output_plot(outname, plot, out_dpi):
     '''
@@ -37,8 +35,9 @@ def setup_plot(extent, bg_col, linewid):
     Returns:
         plt - the matplotlib axes object for using in plot creation
     '''
-
-    ax = plt.axes([0, 0, 1, 1], projection=ccrs.PlateCarree(), facecolor = 'black')
+    ax = plt.axes([0, 0, 1, 1],
+                  projection=ccrs.PlateCarree(),
+                  facecolor='black')
 #    ax.background_patch.set_facecolor('black')
     ax.set_extent(extent, ccrs.Geodetic())
     ax.coastlines(resolution='10m', color=bg_col, linewidth=0.2)
@@ -49,8 +48,12 @@ def setup_plot(extent, bg_col, linewid):
         facecolor='none',
         edgecolor=bg_col,
         linewidth=0.3)
-    ax.add_feature(states_provinces, edgecolor=bg_col, linewidth=0.5*linewid)
-    ax.add_feature(cfeature.BORDERS, edgecolor=bg_col, linewidth=0.5*linewid)
+    ax.add_feature(states_provinces,
+                   edgecolor=bg_col,
+                   linewidth=0.5*linewid)
+    ax.add_feature(cfeature.BORDERS,
+                   edgecolor=bg_col,
+                   linewidth=0.5*linewid)
     return plt
 
 
