@@ -219,7 +219,7 @@ def load_himawari(indir, in_time, comp_type, timedelt, mode):
                      reader='ahi_hsd')
 
     scn = Scene(reader='ahi_hsd', filenames=files)
-    scn.load([comp_type])
+    scn.load([comp_type], pad_data=False)
 
     return scn
 

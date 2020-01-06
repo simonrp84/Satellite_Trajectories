@@ -119,9 +119,8 @@ def main_aircraft_processing(opts):
 
         fig = acplot.overlay_startend(fig, ac_traj2, ac_se_col, dotsiz)
         if (not singlep):
-            fig = acplot.overlay_ac(fig, ac_traj2,
-                                    i, ac_cmap, ac_mina,
-                                    ac_maxa, linewid)
+            fig = acplot.overlay_ac(fig, ac_traj2, i,
+                                    ac_cmap, ac_mina, ac_maxa, linewid)
         fig = acplot.add_acpos(fig, ac_traj2, i, ac_pos_col, dotsiz)
 
         fig = acplot.overlay_time(fig, cur_time, txt_col, txt_size, txt_pos)
@@ -169,7 +168,7 @@ inopts = [s_d,  # Sat dir
           7,  # Text fontsize
           [0.02, 0.95],  # Text position
           cache_dir,  # Cache dir for satpy
-          0.0075,  # Output map resolution
+          0.005,  # Output map resolution
           tag,  # Tag to include in name of output file, often callsign
           1.0,  # Linewidth for borders and trajectory
           2.0,  # Dot size for start / end and current aircraft position
