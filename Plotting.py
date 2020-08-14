@@ -159,7 +159,10 @@ def overlay_sat(plt_ax, sat_img, comp_type, sat_cmap):
     """
     img = sat_img[comp_type]
     crs = img.attrs['area'].to_cartopy_crs()
-    if len(img.shape) > 2:
+    if (len(img.shape) > 2 or
+        comp_type == 'colorized_ir_clouds' or
+        comp_type == 'true_color_*' or
+        comp_type == 'natural_color_*'):
         # This is for a multiband image, such as true color
         img = get_enhanced_image(sat_img[comp_type]).data
         img = np.swapaxes(img.values, 0, 2)

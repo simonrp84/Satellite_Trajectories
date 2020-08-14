@@ -160,7 +160,7 @@ inopts = [s_d,  # Sat dir
           b_t,  # Initial processing time
           e_t,  # Ending processing time
           md,  # Scanning mode
-          'HRV',  # Composite mode
+          'colorized_ir_clouds',  # Composite mode
           0.05,  # Lat multiplier
           0.05,  # Lon multiplier
           'Greys_r',  # Satellite colourmap
