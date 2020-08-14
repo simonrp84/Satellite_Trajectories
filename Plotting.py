@@ -55,10 +55,10 @@ def setup_plot(extent, bg_col, linewid):
         linewidth=0.3)
     ax.add_feature(states_provinces,
                    edgecolor=bg_col,
-                   linewidth=0.5*linewid)
+                   linewidth=0.2)
     ax.add_feature(cfeature.BORDERS,
                    edgecolor=bg_col,
-                   linewidth=0.5*linewid)
+                   linewidth=0.2)
     return plt
 
 

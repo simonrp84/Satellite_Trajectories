@@ -179,10 +179,18 @@ def load_sat(indir, in_time, comp_type, sensor, area_def, cache_dir, mode):
         except ValueError:
             print("ERROR: No satellite data available for", in_time)
             return None
+    elif (sensor == "SEV"):
+        try:
+            tmp_scn = load_seviri(indir, in_time, comp_type, timedelt)
+        except ValueError:
+            print("ERROR: No satellite data available for", in_time)
+            return None
     else:
-        print("Currently only Himawari-8/9 and GOES-R/S are supported.")
+        print("Currently only Himawari-8/9,  GOES-R/S and MSG are supported.")
         quit()
-    scn = tmp_scn.resample(area_def, cache_dir=cache_dir)
+    scn = tmp_scn.resample(area_def,
+                           resampler='bilinear',
+                           cache_dir=cache_dir)
     return scn
 
 
@@ -251,6 +259,33 @@ def load_goes(indir, in_time, comp_type, timedelt):
                  reader='abi_l1b')
 
     scn = Scene(sensor='abi_l1b', filenames=files)
+    scn.load([comp_type])
+
+    return scn
+    
+def load_seviri(indir, in_time, comp_type, timedelt):
+    """
+    Load a MSG/SEVIRI scene as given by img_time.
+
+    img_time should be the *start* time for the scan, as the ending time
+    will be automatically defined from this using timedelt
+
+    The image will be loaded with Satpy, return value is a cartopy object
+
+    Arguments:
+        indir - directory holding the SEVIRI data in HRIT format
+        img_time - a datetime indicating the scene start time in UTC
+        comp_type - the Satpy composite to create (true_color, IR_108, etc)
+        timedelt - the scanning time delta (15 min for full disk)
+    Returns:
+        sat_data - the satellite data object, unresampled
+    """
+    files = ffar(start_time=in_time,
+                 end_time=in_time + timedelta(minutes=timedelt-1),
+                 base_dir=indir,
+                 reader='seviri_l1b_hrit')
+
+    scn = Scene(sensor='seviri_l1b_hrit', filenames=files)
     scn.load([comp_type])
 
     return scn

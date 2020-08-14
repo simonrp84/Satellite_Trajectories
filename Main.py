@@ -142,7 +142,7 @@ def main_aircraft_processing(opts):
 
 cache_dir = '/network/aopp/apres/users/proud/Data/SatPy_CACHE/'
 
-if (len(sys.argv) < 6 or len(sys.argv) > 8):
+if (len(sys.argv) < 6 or len(sys.argv) > 10):
     utils.show_usage()
 
 s_d, f_f, sen, md, fltt, o_d, b_t, e_t, tag = utils.sort_args(sys.argv)
@@ -160,9 +160,9 @@ inopts = [s_d,  # Sat dir
           b_t,  # Initial processing time
           e_t,  # Ending processing time
           md,  # Scanning mode
-          'true_color',  # Composite mode
-          0.15,  # Lat multiplier
-          0.15,  # Lon multiplier
+          'HRV',  # Composite mode
+          0.05,  # Lat multiplier
+          0.05,  # Lon multiplier
           'Greys_r',  # Satellite colourmap
           'Red',  # Coastlines colour
           'Red',  # Aircraft start/end position colour
@@ -176,7 +176,7 @@ inopts = [s_d,  # Sat dir
           cache_dir,  # Cache dir for satpy
           0.0085,  # Output map resolution
           tag,  # Tag to include in name of output file, often callsign
-          2.0,  # Linewidth for borders and trajectory
+          1.0,  # Linewidth for borders and trajectory
           3.0,  # Dot size for start / end and current aircraft position
           False]  # Single point mode, only one aircraft position
 

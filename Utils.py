@@ -18,7 +18,7 @@ def show_usage():
     print("A python aircraft trajectory plotter.")
     print('Call with:')
     print('python Main.py /sat/datadir/ /path/to/traj sat_type\
- scan_type /out/dir/')
+ scan_type flight_type /out/dir/ tag')
     print('Where sat_type is one of:')
     print('    "AHI" for Himawari')
     print('    "ABI" for GOES-R/S')
@@ -30,6 +30,15 @@ def show_usage():
     print('    "PACUS" for GOES-17 USA')
     print('    "M1" for GOES-16/17 Mesoscale 1')
     print('    "M2" for GOES-16/17 Mesoscale 2')
+    print('    "RSS" for MSG/SEVIRI rapid scan')
+    print('And where flight_type is one of:')
+    print('    "CSV" for a time/lat/lon CSV file')
+    print('    "FR24" for a csv file downloaded from flightradar 24')
+    print('Tag specifies a string to attach to output filenames.')
+    print('You can also specify additional arguments, in order:')
+    print('    An YYYMMDDHHMM string specifying start time')
+    print('    An YYYMMDDHHMM string specifying end time')
+
     quit()
 
 
@@ -215,10 +224,10 @@ def sort_args(inargs):
         show_usage()
     if (len(inargs) >= 9):
         dtstr = inargs[8]
-        init_t = datetime.strptime(dtstr, "%Y%m%d%H%M%S")
+        init_t = datetime.strptime(dtstr, "%Y%m%d%H%M")
     if (len(inargs) >= 10):
         dtstr = inargs[9]
-        end_t = datetime.strptime(dtstr, "%Y%m%d%H%M%S")
+        end_t = datetime.strptime(dtstr, "%Y%m%d%H%M")
 
     return sat_dir, flt_fil, sensor, mode, flt_type, out_dir, \
         init_t, end_t, tag
@@ -320,6 +329,13 @@ def sat_timestep_time(sensor, mode):
             return 1
         else:
             return 1
+    elif (sensor == 'SEV'):
+        if (mode == 'FD'):
+            return 10
+        elif (mode == 'RSS'):
+            return 5
+        else:
+            return -1
     else:
         return -1
 
@@ -346,5 +362,11 @@ def sat_timesteps(sensor, mode):
             return np.linspace(0, 55, 12, dtype=np.int)
         if (mode == 'M1' or mode == 'M2'):
             return np.linspace(0, 59, 60, dtype=np.int)
+    elif (sensor == 'SEV'):
+        if (mode == 'FD'):
+            return np.linspace(0, 50, 6, dtype=np.int)
+        if (mode == 'RSS'):
+            return np.linspace(0, 55, 12, dtype=np.int)
     else:
         return -1
+    return -1
