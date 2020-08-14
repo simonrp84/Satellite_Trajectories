@@ -27,6 +27,7 @@ import Data_Load as indata
 import Plotting as acplot
 import logging
 import sys
+import os
 
 logger = logging.getLogger()
 logger.disabled = True
@@ -94,6 +95,9 @@ def main_aircraft_processing(opts):
     sat_img = None
 
     for i in range(2, n_traj_pts2):
+        outf = out_dir + str(i-1).zfill(4) + '_' + comp + '_' + tag + '.png'
+        if os.path.exists(outf):
+            continue
         cur_time = ac_traj2.index[i]
         if verbose:
             print('\t-\tNow processing', cur_time)
@@ -129,10 +133,7 @@ def main_aircraft_processing(opts):
         fig = acplot.add_acpos(fig, ac_traj2, i, ac_pos_col, dotsiz)
 
         fig = acplot.overlay_time(fig, cur_time, txt_col, txt_size, txt_pos)
-        acplot.save_output_plot(out_dir + str(i-1).zfill(4)
-                                + '_' + comp + '_'
-                                + tag + '.png',
-                                fig, 90)
+        acplot.save_output_plot(outf, fig, 90)
         fig.clf()
         fig.close()
 
