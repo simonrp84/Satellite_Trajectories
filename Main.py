@@ -21,16 +21,18 @@ become a class, which would be easier to use.
 """
 
 from datetime import datetime
-
-import Utils as utils
 import Data_Load as indata
 import Plotting as acplot
+import Utils as utils
 import logging
 import sys
 import os
 
 logger = logging.getLogger()
 logger.disabled = True
+
+import warnings
+warnings.filterwarnings('ignore')
 
 
 def main_aircraft_processing(opts):
@@ -160,9 +162,10 @@ inopts = [s_d,  # Sat dir
           b_t,  # Initial processing time
           e_t,  # Ending processing time
           md,  # Scanning mode
-          'colorized_ir_clouds',  # Composite mode
-          0.05,  # Lat multiplier
-          0.05,  # Lon multiplier
+          #'colorized_ir_clouds',  # Composite mode
+          'HRV',  # Composite mode
+          0.1,  # Lat multiplier
+          0.55,  # Lon multiplier
           'Greys_r',  # Satellite colourmap
           'Red',  # Coastlines colour
           'Red',  # Aircraft start/end position colour
@@ -174,7 +177,7 @@ inopts = [s_d,  # Sat dir
           15,  # Text fontsize
           [0.02, 0.95],  # Text position
           cache_dir,  # Cache dir for satpy
-          0.0085,  # Output map resolution
+          0.0006,  # Output map resolution
           tag,  # Tag to include in name of output file, often callsign
           1.0,  # Linewidth for borders and trajectory
           3.0,  # Dot size for start / end and current aircraft position

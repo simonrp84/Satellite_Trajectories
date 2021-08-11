@@ -7,7 +7,7 @@ and returning useful satellite parameters.
 
 import os
 import numpy as np
-from pandas import datetime
+from datetime import datetime
 import pandas as pd
 import scipy.interpolate as interpolate
 from pyresample import create_area_def as create_area_def_pyr
@@ -22,7 +22,8 @@ def show_usage():
     print('Where sat_type is one of:')
     print('    "AHI" for Himawari')
     print('    "ABI" for GOES-R/S')
-    print('    "SEV" for Meteosat Second Generation')
+    print('    "SEV" for Meteosat Second Generation - HRIT Format')
+    print('    "SEVN" for Meteosat Second Generation - NAT Format')
     print('    "AGR" for Fengyun-4A')
     print('And where scan_type is one of:')
     print('    "FD" for Full disk')
@@ -197,7 +198,7 @@ def sort_args(inargs):
 
     !!!   NOTE: Mode/Sensor combinations are not checked here   !!!
     """
-    senlist = ['AHI', 'ABI', 'SEV', 'AGR']
+    senlist = ['AHI', 'ABI', 'SEV', 'SEVN', 'AGR']
 
     init_t = None
     end_t = None
@@ -210,22 +211,22 @@ def sort_args(inargs):
     out_dir = inargs[6]
     tag = inargs[7]
 
-    if (not os.path.isdir(sat_dir)):
+    if not os.path.isdir(sat_dir):
         print("Incorrect satellite data directory!")
         show_usage()
-    if (not os.path.isdir(out_dir)):
+    if not os.path.isdir(out_dir):
         print("Incorrect output data directory!")
         show_usage()
-    if (not os.path.isfile(flt_fil)):
+    if not os.path.isfile(flt_fil):
         print("Incorrect flight trajectory file!")
         show_usage()
-    if (sensor not in senlist):
+    if sensor not in senlist:
         print("Incorrect sensor!")
         show_usage()
-    if (len(inargs) >= 9):
+    if len(inargs) >= 9:
         dtstr = inargs[8]
         init_t = datetime.strptime(dtstr, "%Y%m%d%H%M")
-    if (len(inargs) >= 10):
+    if len(inargs) >= 10:
         dtstr = inargs[9]
         end_t = datetime.strptime(dtstr, "%Y%m%d%H%M")
 
@@ -268,8 +269,14 @@ def get_cur_sat_time(cur_t, sensor, mode):
     Returns:
         sat_time - the satellite scan start time
     """
+    #print(cur_t)
+   # print(sensor)
+    #print(mode)
     timestep = sat_timesteps(sensor, mode)
     sat_time = get_sat_time(cur_t, timestep)
+    #print(timestep)
+    #print(sat_time)
+    #quit()
 
     return sat_time
 
@@ -309,30 +316,30 @@ def sat_timestep_time(sensor, mode):
         A time value in minutes for each scan.
         If unknown sensor/mode combination then returns -1
     """
-    if (sensor == 'AHI'):
-        if (mode == 'FD'):
+    if sensor == 'AHI':
+        if mode == 'FD':
             return 10
-        elif (mode == 'MESO'):
+        elif mode == 'MESO':
             return 2.5
         else:
             return -1
-    elif (sensor == 'ABI'):
-        if (mode == 'FD'):
+    elif sensor == 'ABI':
+        if mode == 'FD':
             return 10
-        elif (mode == 'CONUS'):
+        elif mode == 'CONUS':
             return 5
-        elif (mode == 'PACUS'):
+        elif mode == 'PACUS':
             return 5
-        elif (mode == 'M1'):
+        elif mode == 'M1':
             return 1
-        elif (mode == 'M2'):
+        elif mode == 'M2':
             return 1
         else:
             return 1
-    elif (sensor == 'SEV'):
-        if (mode == 'FD'):
+    elif sensor == 'SEV' or sensor == 'SEVN':
+        if mode == 'FD':
             return 10
-        elif (mode == 'RSS'):
+        elif mode == 'RSS':
             return 5
         else:
             return -1
@@ -350,22 +357,22 @@ def sat_timesteps(sensor, mode):
     Returns:
         A list of scan start times in the hour (given in minutes)
     """
-    if (sensor == 'AHI'):
-        if (mode == 'FD'):
+    if sensor == 'AHI':
+        if mode == 'FD':
             return np.linspace(0, 50, 6, dtype=np.int)
-        elif (mode == 'MESO'):
+        elif mode == 'MESO':
             return np.linspace(0, 60, 25, dtype=np.float32)
         else:
             return -1
-    elif (sensor == 'ABI'):
-        if (mode == 'CONUS' or mode == 'PACUS'):
+    elif sensor == 'ABI':
+        if mode == 'CONUS' or mode == 'PACUS':
             return np.linspace(0, 55, 12, dtype=np.int)
-        if (mode == 'M1' or mode == 'M2'):
+        if mode == 'M1' or mode == 'M2':
             return np.linspace(0, 59, 60, dtype=np.int)
-    elif (sensor == 'SEV'):
-        if (mode == 'FD'):
+    elif sensor == 'SEV' or sensor == 'SEVN':
+        if mode == 'FD':
             return np.linspace(0, 50, 6, dtype=np.int)
-        if (mode == 'RSS'):
+        if mode == 'RSS':
             return np.linspace(0, 55, 12, dtype=np.int)
     else:
         return -1
