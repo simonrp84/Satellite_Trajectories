@@ -109,7 +109,7 @@ def main_aircraft_processing(opts):
             if verbose:
                 print('\t-\tLoading satellite data for', sat_time)
             sat_img = indata.load_sat(sat_dir, sat_time, comp,
-                                      sensor, area, cache_dir, mode)
+                                      sensor, plot_bounds, cache_dir, mode)
             if (sat_img is None and old_scn is not None):
                 sat_img = old_scn
             elif (sat_img is None):
@@ -123,13 +123,13 @@ def main_aircraft_processing(opts):
         if verbose:
             print('\t-\tPlotting and saving results')
 
-        fig = acplot.setup_plot(plot_bounds, bg_col, linewid)
+        fig = acplot.setup_plot(plot_bounds, bg_col, linewid, sat_img[comp].attrs['area'].to_cartopy_crs())
 
-        if (sat_img is not None):
+        if sat_img is not None:
             fig = acplot.overlay_sat(fig, sat_img, comp, sat_cmap)
 
-        fig = acplot.overlay_startend(fig, ac_traj2, ac_se_col, dotsiz)
-        if (not singlep):
+      #  fig = acplot.overlay_startend(fig, ac_traj2, ac_se_col, dotsiz)
+        if not singlep:
             fig = acplot.overlay_ac(fig, ac_traj2, i,
                                     ac_cmap, ac_mina, ac_maxa, linewid)
         fig = acplot.add_acpos(fig, ac_traj2, i, ac_pos_col, dotsiz)
@@ -142,7 +142,7 @@ def main_aircraft_processing(opts):
     print("Completed processing")
 
 
-cache_dir = '/network/aopp/apres/users/proud/Data/SatPy_CACHE/'
+cache_dir = 'I:/SatPy_CACHE/'
 
 if (len(sys.argv) < 6 or len(sys.argv) > 10):
     utils.show_usage()
@@ -163,9 +163,9 @@ inopts = [s_d,  # Sat dir
           e_t,  # Ending processing time
           md,  # Scanning mode
           #'colorized_ir_clouds',  # Composite mode
-          'HRV',  # Composite mode
-          0.1,  # Lat multiplier
-          0.55,  # Lon multiplier
+          'C03',  # Composite mode
+          0.01,  # Lat multiplier
+          0.01,  # Lon multiplier
           'Greys_r',  # Satellite colourmap
           'Red',  # Coastlines colour
           'Red',  # Aircraft start/end position colour
@@ -177,7 +177,7 @@ inopts = [s_d,  # Sat dir
           15,  # Text fontsize
           [0.02, 0.95],  # Text position
           cache_dir,  # Cache dir for satpy
-          0.0006,  # Output map resolution
+          0.005,  # Output map resolution
           tag,  # Tag to include in name of output file, often callsign
           1.0,  # Linewidth for borders and trajectory
           3.0,  # Dot size for start / end and current aircraft position

@@ -193,9 +193,10 @@ def load_sat(indir, in_time, comp_type, sensor, area_def, cache_dir, mode):
     else:
         print("Currently only Himawari-8/9,  GOES-R/S and MSG are supported.")
         raise RuntimeError
-    scn = tmp_scn.resample(area_def,
-                           resampler='bilinear',
-                           cache_dir=cache_dir)
+    #scn = tmp_scn.resample(area_def,
+    #                       resampler='gradient_search',
+    #                       cache_dir=cache_dir)
+    scn = tmp_scn.crop(ll_bbox=(area_def[0], area_def[2], area_def[1], area_def[3]))
     return scn
 
 

@@ -28,7 +28,7 @@ def save_output_plot(outname, plot, out_dpi):
     plt.savefig(outname, bbox_inches='tight', pad_inches=0, dpi=out_dpi)
 
 
-def setup_plot(extent, bg_col, linewid):
+def setup_plot(extent, bg_col, linewid, crs):
     """
     Initialise the matplotlib output figure.
 
@@ -41,7 +41,7 @@ def setup_plot(extent, bg_col, linewid):
         plt - the matplotlib axes object for using in plot creation
     """
     ax = plt.axes([0, 0, 1, 1],
-                  projection=ccrs.PlateCarree(),
+                  projection=crs,
                   facecolor='black')
 #    ax.background_patch.set_facecolor('black')
     ax.set_extent(extent, ccrs.Geodetic())
@@ -119,7 +119,7 @@ def overlay_ac(plt_ax, ac_df, traj_lim, ac_cmap, minalt, maxalt, linesize):
         lonp = [lons[i-1], lons[i]]
         latp = [lats[i-1], lats[i]]
         color = cmap(alt)
-        plt_ax.plot(lonp, latp, color=color, linewidth=linesize)
+        plt_ax.plot(lonp, latp, color=color, linewidth=linesize, transform=ccrs.Geodetic())
 
     return plt_ax
 
@@ -139,7 +139,7 @@ def add_acpos(plt_ax, ac_df, curpt, ac_color, dotsize):
     """
     lon = ac_df.Longitude[curpt]
     lat = ac_df.Latitude[curpt]
-    plt_ax.plot(lon, lat, marker='*', color=ac_color, markersize=dotsize*2)
+    plt_ax.plot(lon, lat, marker='*', color=ac_color, markersize=dotsize*2, transform=ccrs.Geodetic())
 
     return plt_ax
 
