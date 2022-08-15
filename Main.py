@@ -142,7 +142,7 @@ def main_aircraft_processing(opts):
     print("Completed processing")
 
 
-cache_dir = 'I:/SatPy_CACHE/'
+cache_dir = 'F:/SatPy_CACHE/'
 
 if (len(sys.argv) < 6 or len(sys.argv) > 10):
     utils.show_usage()
@@ -163,21 +163,21 @@ inopts = [s_d,  # Sat dir
           e_t,  # Ending processing time
           md,  # Scanning mode
           #'colorized_ir_clouds',  # Composite mode
-          'C03',  # Composite mode
-          0.01,  # Lat multiplier
-          0.01,  # Lon multiplier
+          'C02',  # Composite mode
+          0.2,  # Lat multiplier
+          0.05,  # Lon multiplier
           'Greys_r',  # Satellite colourmap
           'Red',  # Coastlines colour
           'Red',  # Aircraft start/end position colour
           'viridis',  # Aircraft trajectory colourmap
           1000,  # Aircraft min altitude for colourmap
-          35000,  # Aircraft max altitude for colourmap
+          38000,  # Aircraft max altitude for colourmap
           'Red',  # Aircraft position colour
           'Red',  # Text colour
           15,  # Text fontsize
-          [0.02, 0.95],  # Text position
+          [0.04, 0.92],  # Text position
           cache_dir,  # Cache dir for satpy
-          0.005,  # Output map resolution
+          0.003,  # Output map resolution
           tag,  # Tag to include in name of output file, often callsign
           1.0,  # Linewidth for borders and trajectory
           3.0,  # Dot size for start / end and current aircraft position
