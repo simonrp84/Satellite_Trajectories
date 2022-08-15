@@ -19,7 +19,6 @@ from satpy import Scene
 import Utils as utils
 from glob import glob
 
-
 # Use these lines to enable debug mode, useful if satellite data
 # isn't loading correctly.
 # from satpy.utils import debug_on
@@ -193,10 +192,10 @@ def load_sat(indir, in_time, comp_type, sensor, area_def, cache_dir, mode):
     else:
         print("Currently only Himawari-8/9,  GOES-R/S and MSG are supported.")
         raise RuntimeError
-    #scn = tmp_scn.resample(area_def,
-    #                       resampler='gradient_search',
-    #                       cache_dir=cache_dir)
     scn = tmp_scn.crop(ll_bbox=(area_def[0], area_def[2], area_def[1], area_def[3]))
+    scn = scn.resample(scn.finest_area(),
+                       resampler='native',
+                       cache_dir=cache_dir)
     return scn
 
 
@@ -226,13 +225,13 @@ def load_himawari(indir, in_time, comp_type, timedelt, mode):
         tmp_t = tmp_t.replace(minute=minu)
         tmp_t = tmp_t.replace(second=0)
         dt = (in_time - tmp_t).total_seconds() / 60.
-        src_str = '*_R30' + str(int(dt/timedelt) + 1) + '*'
+        src_str = '*_R30' + str(int(dt / timedelt) + 1) + '*'
         dtstr = tmp_t.strftime("%Y%m%d_%H%M")
         files = glob(indir + '*' + dtstr + src_str + '.DAT')
         files.sort()
     else:
         files = ffar(start_time=in_time,
-                     end_time=in_time + timedelta(minutes=timedelt-1),
+                     end_time=in_time + timedelta(minutes=timedelt - 1),
                      base_dir=indir,
                      reader='ahi_hsd')
 
@@ -260,7 +259,7 @@ def load_goes(indir, in_time, comp_type, timedelt):
         sat_data - the satellite data object, unresampled
     """
     files = ffar(start_time=in_time,
-                 end_time=in_time + timedelta(minutes=timedelt-1),
+                 end_time=in_time + timedelta(minutes=timedelt - 1),
                  base_dir=indir,
                  reader='abi_l1b')
 

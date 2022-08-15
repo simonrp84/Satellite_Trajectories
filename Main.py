@@ -105,14 +105,14 @@ def main_aircraft_processing(opts):
             print('\t-\tNow processing', cur_time)
 
         sat_time = utils.get_cur_sat_time(cur_time, sensor, mode)
-        if (sat_time != prev_time):
+        if sat_time != prev_time:
             if verbose:
                 print('\t-\tLoading satellite data for', sat_time)
             sat_img = indata.load_sat(sat_dir, sat_time, comp,
                                       sensor, plot_bounds, cache_dir, mode)
-            if (sat_img is None and old_scn is not None):
+            if sat_img is None and old_scn is not None:
                 sat_img = old_scn
-            elif (sat_img is None):
+            elif sat_img is None:
                 print("ERROR: No satellite data for", sat_time)
             old_scn = sat_img
             prev_time = sat_time
@@ -163,7 +163,7 @@ inopts = [s_d,  # Sat dir
           e_t,  # Ending processing time
           md,  # Scanning mode
           #'colorized_ir_clouds',  # Composite mode
-          'C02',  # Composite mode
+          'true_color',  # Composite mode
           0.2,  # Lat multiplier
           0.05,  # Lon multiplier
           'Greys_r',  # Satellite colourmap

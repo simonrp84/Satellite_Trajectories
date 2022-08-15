@@ -7,7 +7,7 @@ and returning useful satellite parameters.
 
 import os
 import numpy as np
-from datetime import datetime
+from datetime import datetime, timedelta
 import pandas as pd
 import scipy.interpolate as interpolate
 from pyresample import create_area_def as create_area_def_pyr
@@ -269,14 +269,8 @@ def get_cur_sat_time(cur_t, sensor, mode):
     Returns:
         sat_time - the satellite scan start time
     """
-    #print(cur_t)
-   # print(sensor)
-    #print(mode)
     timestep = sat_timesteps(sensor, mode)
     sat_time = get_sat_time(cur_t, timestep)
-    #print(timestep)
-    #print(sat_time)
-    #quit()
 
     return sat_time
 
@@ -299,8 +293,9 @@ def get_sat_time(inti, timestep):
             tsec = (timestep[i-1] - tmin) * 60
             outti = datetime(inti.year, inti.month, inti.day,
                              inti.hour, tmin, int(tsec))
-            break
-    outti = outti.replace(microsecond=0)
+            return outti.replace(microsecond=0)
+    outti = datetime(inti.year, inti.month, inti.day,
+                             inti.hour, timestep[0], 0) + timedelta(hours=1)
 
     return outti
 
