@@ -142,14 +142,14 @@ def interp_ac(ac_traj, freq):
         ot - the interpolated trajectory (lat/lon/alt only)
     """
     # We need times in unix format
-    in_times = ac_traj.index.astype(np.int64) // 10**9
+    in_times = ac_traj.index.astype(np.int64) // 10 ** 9
 
     st_time = ac_traj.index[0]
     # Set start time to 0 seconds, makes it more 'pretty'
     st_time = st_time.replace(second=0)
 
     out_times = pd.date_range(start=st_time, end=ac_traj.index[-1], freq=freq)
-    interp_times = out_times.astype(np.int64) // 10**9
+    interp_times = out_times.astype(np.int64) // 10 ** 9
 
     lats = ac_traj.Latitude.values
     lons = ac_traj.Longitude.values
@@ -230,8 +230,7 @@ def sort_args(inargs):
         dtstr = inargs[9]
         end_t = datetime.strptime(dtstr, "%Y%m%d%H%M")
 
-    return sat_dir, flt_fil, sensor, mode, flt_type, out_dir, \
-        init_t, end_t, tag
+    return sat_dir, flt_fil, sensor, mode, flt_type, out_dir, init_t, end_t, tag
 
 
 def get_startend(ac_traj, sensor, mode):
@@ -253,7 +252,7 @@ def get_startend(ac_traj, sensor, mode):
 
     tot_ac_time = end_time - start_time
     print("\t-\tAircraft trajectory runs from", start_time, "until", end_time,
-          ", which is ", np.round(tot_ac_time.total_seconds()/60), "minutes.")
+          ", which is ", np.round(tot_ac_time.total_seconds() / 60), "minutes.")
 
     return start_time, end_time, tot_ac_time
 
@@ -285,17 +284,16 @@ def get_sat_time(inti, timestep):
     Returns:
         outti - the satellite scan start time
     """
-    outti = inti
     for i in range(1, len(timestep)):
         tempt = float(inti.minute) + inti.second / 60.
         if timestep[i] > tempt:
-            tmin = int(timestep[i-1])
-            tsec = (timestep[i-1] - tmin) * 60
+            tmin = int(timestep[i - 1])
+            tsec = (timestep[i - 1] - tmin) * 60
             outti = datetime(inti.year, inti.month, inti.day,
                              inti.hour, tmin, int(tsec))
             return outti.replace(microsecond=0)
     outti = datetime(inti.year, inti.month, inti.day,
-                             inti.hour, timestep[0], 0) + timedelta(hours=1)
+                     inti.hour, timestep[0], 0) + timedelta(hours=1)
 
     return outti
 
@@ -364,6 +362,8 @@ def sat_timesteps(sensor, mode):
             return np.linspace(0, 55, 12, dtype=np.int)
         if mode == 'M1' or mode == 'M2':
             return np.linspace(0, 59, 60, dtype=np.int)
+        if mode == 'FD':
+            return np.linspace(0, 50, 6, dtype=np.int)
     elif sensor == 'SEV' or sensor == 'SEVN':
         if mode == 'FD':
             return np.linspace(0, 50, 6, dtype=np.int)
